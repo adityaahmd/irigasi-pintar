@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>SIP V3 - Smart Irrigation Cloud</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>SIP V3 - Dashboard Irigasi Terpadu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -12,16 +12,15 @@
         :root { --sidebar-width: 240px; }
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
         .sidebar { width: var(--sidebar-width); background-color: #1e293b; border-right: 1px solid #334155; }
-        .clean-card { background: #1e293b; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .nav-btn { display: flex; align-items: center; padding: 12px 16px; border-radius: 12px; color: #94a3b8; transition: 0.2s; width: 100%; }
-        .nav-btn.active { background-color: #334155; color: #f8fafc; font-weight: 600; }
-        .btn-action { padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; border: 1px solid #334155; transition: 0.3s; }
-        .btn-on.active { background: #10b981; color: white; border-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
-        .btn-off.active { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        input[type=range] { -webkit-appearance: none; background: #334155; height: 6px; border-radius: 5px; outline: none; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #38bdf8; border-radius: 50%; cursor: pointer; border: 2px solid #f8fafc; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .clean-card { background: #1e293b; border-radius: 20px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .btn-action { padding: 12px 24px; border-radius: 12px; font-size: 13px; font-weight: 800; border: 1px solid #334155; transition: 0.3s; }
+        .btn-on.active { background: #10b981; color: white; border-color: #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+        .btn-off.active { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+        input[type=range] { -webkit-appearance: none; background: #334155; height: 8px; border-radius: 10px; outline: none; width: 100%; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: #38bdf8; border-radius: 50%; cursor: pointer; border: 3px solid #f8fafc; }
+        .notification-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
+        .notification { padding: 14px 24px; border-radius: 12px; color: white; font-weight: 600; font-size: 14px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); transition: 0.3s; opacity: 0; transform: translateY(20px); }
+        .notification.show { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
@@ -31,116 +30,141 @@
             <div class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-sky-500/20">S</div>
             <span class="ml-4 font-bold text-xl tracking-tight">SIP <span class="text-sky-400 font-light">V3</span></span>
         </div>
-        <nav class="flex-1 px-4 py-8 space-y-2">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn active">Dashboard</button>
-            <button onclick="switchTab('grafik')" id="nav-grafik" class="nav-btn">Grafik Data</button>
-            <button onclick="switchTab('log')" id="nav-log" class="nav-btn">Riwayat Log</button>
+        <nav class="flex-1 px-4 py-8 space-y-3">
+            <div class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Main Menu</div>
+            <button class="flex items-center px-4 py-3 rounded-xl bg-slate-800 text-slate-100 font-bold w-full">Dashboard</button>
         </nav>
-        <div class="p-6 border-t border-slate-700 text-[10px] text-slate-500 text-center font-bold uppercase tracking-widest">&copy; 2026 CLOUD SYSTEM</div>
+        <div class="p-6 border-t border-slate-700 text-[10px] text-slate-600 text-center font-black uppercase tracking-tighter">Powered by Firebase Cloud</div>
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header class="h-20 bg-slate-900/50 backdrop-blur-md border-b border-slate-800 flex justify-between items-center px-8">
-            <h1 class="text-xl font-bold text-slate-100">Smart Irrigation Dashboard</h1>
+        <header class="h-20 bg-slate-900/50 backdrop-blur-md border-b border-slate-800 flex justify-between items-center px-8 flex-shrink-0">
+            <h1 class="text-xl font-black text-slate-100 tracking-tight">Irigasi Pintar V3</h1>
             <div class="flex items-center gap-6">
                 <div class="flex items-center bg-slate-800 px-4 py-2 rounded-full border border-slate-700">
                     <div id="connIndicator" class="w-2.5 h-2.5 rounded-full bg-slate-600 mr-3 animate-pulse"></div>
-                    <span id="connText" class="text-xs font-bold text-slate-400 uppercase tracking-tighter">Connecting...</span>
+                    <span id="connText" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Connecting</span>
                 </div>
-                <div class="text-right hidden sm:block">
-                    <p class="text-[10px] text-slate-500 uppercase font-black mb-0.5">Waktu Server</p>
-                    <p id="currentTime" class="text-sm font-mono text-sky-400">--:--:--</p>
+                <div class="text-right leading-none">
+                    <p id="currentTime" class="text-sm font-mono font-bold text-sky-400">--:--:--</p>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-6 space-y-6">
+        <main class="flex-1 overflow-y-auto p-6 space-y-8 pb-24">
             
-            <div id="dashboard" class="tab-content active space-y-6">
-                <div class="clean-card p-6 flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="clean-card p-6 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sistem Status</p>
+                        <p id="systemMsg" class="text-sm font-bold text-slate-300">Menghubungkan ke Cloud...</p>
+                    </div>
+                </div>
+                <div class="flex gap-8 text-[10px] font-black text-slate-500 uppercase">
+                    <div>Atap <span id="roofSummary" class="block text-sm text-sky-400">--</span></div>
+                    <div>Cahaya <span id="lightSummary" class="block text-sm text-yellow-400">--</span></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="clean-card p-5 border-l-4 border-l-rose-500">
+                    <p class="text-[10px] font-black text-slate-500 uppercase">Suhu Udara</p>
+                    <h2 id="tempVal" class="text-4xl font-black text-slate-100 mt-1">--</h2>
+                    <p class="text-[10px] text-slate-500 italic mt-2">Celcius (°C)</p>
+                </div>
+                <div class="clean-card p-5 border-l-4 border-l-sky-500">
+                    <p class="text-[10px] font-black text-slate-500 uppercase">Kelembapan</p>
+                    <h2 id="humVal" class="text-4xl font-black text-slate-100 mt-1">--</h2>
+                    <p class="text-[10px] text-slate-500 italic mt-2">Relatif (%)</p>
+                </div>
+                <div class="clean-card p-5 border-l-4 border-l-emerald-500">
+                    <p class="text-[10px] font-black text-slate-500 uppercase">Soil 1</p>
+                    <h2 id="soil1Val" class="text-4xl font-black text-slate-100 mt-1">--</h2>
+                    <p class="text-[10px] text-slate-500 italic mt-2">Moisture (%)</p>
+                </div>
+                <div class="clean-card p-5 border-l-4 border-l-emerald-600">
+                    <p class="text-[10px] font-black text-slate-500 uppercase">Soil 2</p>
+                    <h2 id="soil2Val" class="text-4xl font-black text-slate-100 mt-1">--</h2>
+                    <p class="text-[10px] text-slate-500 italic mt-2">Moisture (%)</p>
+                </div>
+                <div class="clean-card p-5 border-l-4 border-l-purple-500">
+                    <p class="text-[10px] font-black text-slate-500 uppercase">pH Air 1</p>
+                    <h2 id="ph1Val" class="text-4xl font-black text-slate-100 mt-1">--</h2>
+                    <p class="text-[10px] text-slate-500 italic mt-2">Tingkat pH</p>
+                </div>
+                <div class="clean-card p-5 border-l-4 border-l-purple-600">
+                    <p class="text-[10px] font-black text-slate-500 uppercase">pH Air 2</p>
+                    <h2 id="ph2Val" class="text-4xl font-black text-slate-100 mt-1">--</h2>
+                    <p class="text-[10px] text-slate-500 italic mt-2">Tingkat pH</p>
+                </div>
+                <div class="clean-card p-5 border-l-4 border-l-yellow-500">
+                    <p class="text-[10px] font-black text-slate-500 uppercase">Cahaya</p>
+                    <h2 id="lightVal" class="text-4xl font-black text-slate-100 mt-1">--</h2>
+                    <p class="text-[10px] text-slate-500 italic mt-2">Lux (lx)</p>
+                </div>
+                <div class="clean-card p-5 bg-slate-800/30 border-dashed flex items-center justify-center">
+                    <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Sistem Aktif</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="clean-card p-6">
+                    <h3 class="text-xs font-black uppercase mb-6 tracking-widest text-slate-500">Pompa Zona 1</h3>
+                    <div class="flex items-center justify-between bg-slate-900/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="flex items-center gap-4">
+                            <div id="p1PowerInd" class="w-4 h-4 rounded-full bg-slate-700"></div>
+                            <span class="text-[10px] font-black text-slate-400 uppercase">Power</span>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Status Sistem</p>
-                            <p id="systemMsg" class="text-sm font-bold text-slate-200">Menghubungkan ke database Singapura...</p>
+                        <div class="flex gap-3">
+                            <button id="btnOn" onclick="control('pump1', 'ON')" class="btn-action btn-on">ON</button>
+                            <button id="btnOff" onclick="control('pump1', 'OFF')" class="btn-action btn-off">OFF</button>
                         </div>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="clean-card p-5">
-                        <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Suhu Udara</p>
-                        <h2 id="tempVal" class="text-4xl font-black text-slate-100">--</h2>
-                        <p class="text-[10px] text-slate-500 mt-2 italic">Celcius (°C)</p>
-                    </div>
-                    <div class="clean-card p-5">
-                        <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Kelembapan</p>
-                        <h2 id="humVal" class="text-4xl font-black text-slate-100">--</h2>
-                        <p class="text-[10px] text-slate-500 mt-2 italic">Relative (%)</p>
-                    </div>
-                    <div class="clean-card p-5">
-                        <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Moisture Tanah</p>
-                        <h2 id="soilVal" class="text-4xl font-black text-slate-100">--</h2>
-                        <p class="text-[10px] text-slate-500 mt-2 italic">Sensor 1 (%)</p>
-                    </div>
-                    <div class="clean-card p-5">
-                        <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Kadar pH</p>
-                        <h2 id="phVal" class="text-4xl font-black text-slate-100">--</h2>
-                        <p class="text-[10px] text-slate-500 mt-2 italic">Larutan Nutrisi</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="clean-card p-6">
-                        <h3 class="text-sm font-black uppercase mb-6 tracking-widest text-slate-400">Kontrol Pompa Utama</h3>
-                        <div class="flex items-center justify-between bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
-                            <div class="flex items-center gap-4">
-                                <div id="p1Indicator" class="w-4 h-4 rounded-full bg-slate-700"></div>
-                                <span class="text-xs font-black text-slate-400 uppercase">Power Status</span>
-                            </div>
-                            <div class="flex gap-3">
-                                <button id="btnOn" onclick="controlDevice('pump1', 'ON')" class="btn-action btn-on">ON</button>
-                                <button id="btnOff" onclick="controlDevice('pump1', 'OFF')" class="btn-action btn-off">OFF</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="clean-card p-6">
-                        <h3 class="text-sm font-black uppercase mb-6 tracking-widest text-slate-400 text-center">Atap (Servo)</h3>
-                        <div class="px-4">
-                            <input type="range" min="0" max="180" value="90" class="w-full" id="servoSlider" onchange="controlDevice('roof_angle', parseInt(this.value))">
-                            <div class="flex justify-between mt-6">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase">Tutup (0°)</span>
-                                <span id="servoValue" class="text-2xl font-black bg-slate-800 px-6 py-2 rounded-xl border border-slate-700 text-sky-400">90°</span>
-                                <span class="text-[10px] font-bold text-slate-500 uppercase">Buka (180°)</span>
-                            </div>
+                <div class="clean-card p-6">
+                    <h3 class="text-xs font-black uppercase mb-6 tracking-widest text-slate-500 text-center">Kontrol Atap (Servo)</h3>
+                    <div class="px-4">
+                        <input type="range" min="0" max="180" value="90" id="servoSlider" onchange="control('roof_angle', parseInt(this.value))">
+                        <div class="flex justify-between items-center mt-6">
+                            <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Tutup</span>
+                            <span id="servoLabel" class="text-3xl font-black bg-slate-900 px-8 py-2 rounded-2xl border border-slate-700 text-sky-400">90°</span>
+                            <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Buka</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="grafik" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="clean-card p-6"><h3 class="text-xs font-bold mb-4 uppercase text-slate-400">Suhu & Kelembapan</h3><canvas id="chartEnvironment"></canvas></div>
-                    <div class="clean-card p-6"><h3 class="text-xs font-bold mb-4 uppercase text-slate-400">Moisture Tanah & pH</h3><canvas id="chartSoil"></canvas></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="clean-card p-6 h-80">
+                    <h3 class="text-[10px] font-black uppercase mb-4 text-slate-500 tracking-widest">Tren Lingkungan (Suhu, Hum, Cahaya)</h3>
+                    <div class="h-full pb-4"><canvas id="chartEnv"></canvas></div>
+                </div>
+                <div class="clean-card p-6 h-80">
+                    <h3 class="text-[10px] font-black uppercase mb-4 text-slate-500 tracking-widest">Tren Tanah (Moisture & pH)</h3>
+                    <div class="h-full pb-4"><canvas id="chartSoil"></canvas></div>
                 </div>
             </div>
 
-            <div id="log" class="tab-content">
-                <div class="clean-card overflow-hidden">
-                    <table class="w-full text-left text-sm">
+            <div class="clean-card overflow-hidden">
+                <div class="p-6 border-b border-slate-700 bg-slate-800/30 flex justify-between items-center">
+                    <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Riwayat Log Data Sensor</h3>
+                    <span class="text-[10px] bg-sky-500/10 text-sky-400 px-3 py-1 rounded-full font-black uppercase tracking-tighter">Real-time Updating</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
                         <thead class="bg-slate-800/50 text-[10px] uppercase font-black text-slate-500 border-b border-slate-700">
                             <tr>
                                 <th class="p-5">Waktu</th>
-                                <th class="p-5">Suhu (°C)</th>
-                                <th class="p-5">Hum (%)</th>
-                                <th class="p-5">Soil (%)</th>
-                                <th class="p-5">pH</th>
+                                <th class="p-5">Suhu/Hum</th>
+                                <th class="p-5">Soil 1/2</th>
+                                <th class="p-5">pH 1/2</th>
+                                <th class="p-5">Cahaya</th>
                             </tr>
                         </thead>
-                        <tbody id="logTable" class="divide-y divide-slate-800 text-slate-300 font-medium">
-                            </tbody>
+                        <tbody id="logTable" class="divide-y divide-slate-800 text-slate-300 font-bold"></tbody>
                     </table>
                 </div>
             </div>
@@ -148,133 +172,144 @@
         </main>
     </div>
 
-    <div id="notificationContainer" class="fixed bottom-8 right-8 z-[9999] flex flex-col gap-3"></div>
+    <div id="notificationContainer" class="notification-container"></div>
 
     <script>
-        // CONFIG FIREBASE REGIONAL ASIA-SOUTHEAST1
-        const URL = "https://myesp32control-a3605-default-rtdb.asia-southeast1.firebasedatabase.app/";
-        
+        // CONFIG FIREBASE ASIA-SOUTHEAST1
+        const FB_URL = "https://myesp32control-a3605-default-rtdb.asia-southeast1.firebasedatabase.app/";
         let charts = {};
 
         // Inisialisasi Grafik
         function initCharts() {
-            const ctx1 = document.getElementById('chartEnvironment').getContext('2d');
-            charts.env = new Chart(ctx1, {
+            const commonOptions = { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { labels: { color: '#64748b', font: { size: 10, weight: 'bold' }, usePointStyle: true } } },
+                scales: { 
+                    x: { ticks: { color: '#475569', font: { size: 9 } }, grid: { display: false } },
+                    y: { ticks: { color: '#475569', font: { size: 9 } }, grid: { color: '#1e293b' } }
+                }
+            };
+
+            charts.env = new Chart(document.getElementById('chartEnv').getContext('2d'), {
                 type: 'line',
                 data: { labels: [], datasets: [
-                    { label: 'Suhu', borderColor: '#f43f5e', data: [], tension: 0.4, fill: false },
-                    { label: 'Hum', borderColor: '#38bdf8', data: [], tension: 0.4, fill: false }
+                    { label: 'Suhu (°C)', borderColor: '#f43f5e', borderDash: [5,5], data: [], pointRadius: 0, tension: 0.4 },
+                    { label: 'Hum (%)', borderColor: '#38bdf8', data: [], pointRadius: 0, tension: 0.4 },
+                    { label: 'Cahaya', borderColor: '#eab308', data: [], pointRadius: 0, tension: 0.4 }
                 ]},
-                options: { responsive: true, plugins: { legend: { display: false } } }
+                options: commonOptions
             });
 
-            const ctx2 = document.getElementById('chartSoil').getContext('2d');
-            charts.soil = new Chart(ctx2, {
+            charts.soil = new Chart(document.getElementById('chartSoil').getContext('2d'), {
                 type: 'line',
                 data: { labels: [], datasets: [
-                    { label: 'Soil', borderColor: '#10b981', data: [], tension: 0.4, fill: false },
-                    { label: 'pH', borderColor: '#a855f7', data: [], tension: 0.4, fill: false }
+                    { label: 'Soil 1', borderColor: '#10b981', data: [], pointRadius: 0, tension: 0.4 },
+                    { label: 'Soil 2', borderColor: '#059669', borderDash: [3,3], data: [], pointRadius: 0, tension: 0.4 },
+                    { label: 'pH 1', borderColor: '#a855f7', data: [], pointRadius: 0, tension: 0.4 },
+                    { label: 'pH 2', borderColor: '#7c3aed', borderDash: [3,3], data: [], pointRadius: 0, tension: 0.4 }
                 ]},
-                options: { responsive: true, plugins: { legend: { display: false } } }
+                options: commonOptions
             });
         }
 
-        // Ambil Data dari Cloud
-        async function fetchCloudData() {
+        async function updateData() {
             try {
-                const res = await fetch(URL + ".json");
+                const res = await fetch(FB_URL + ".json");
                 const data = await res.json();
                 if(!data) return;
 
-                // Update Status UI
-                document.getElementById('connIndicator').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_12px_#10b981] mr-3";
+                // Indikator Koneksi
+                document.getElementById('connIndicator').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_12px_#10b981] mr-3 animate-none";
                 document.getElementById('connText').innerText = "Cloud Online";
-                document.getElementById('systemMsg').innerText = "✓ Komunikasi Cloud Lancar";
-                const now = new Date();
-                document.getElementById('currentTime').innerText = now.toLocaleTimeString('id-ID');
+                document.getElementById('connText').className = "text-[10px] font-black text-emerald-400 uppercase tracking-widest";
+                document.getElementById('systemMsg').innerText = "✓ Komunikasi Cloud Asia-Southeast1 Aktif";
+                
+                const time = new Date().toLocaleTimeString('id-ID');
+                document.getElementById('currentTime').innerText = time;
 
-                // Update Sensor (Folder /monitoring)
                 const m = data.monitoring || {};
-                const t = (m.temperature || 0).toFixed(1);
-                const h = (m.humidity || 0).toFixed(1);
-                const s = m.soil1 || 0;
-                const p = (m.ph1 || 0).toFixed(1);
-
-                document.getElementById('tempVal').innerText = t;
-                document.getElementById('humVal').innerText = h;
-                document.getElementById('soilVal').innerText = s;
-                document.getElementById('phVal').innerText = p;
-
-                // Update Controls (Folder /control)
                 const c = data.control || {};
-                const p1 = c.pump1 || "OFF";
-                document.getElementById('p1Indicator').className = `w-4 h-4 rounded-full ${p1 === "ON" ? "bg-emerald-500 shadow-lg shadow-emerald-500/50" : "bg-slate-700"}`;
-                document.getElementById('btnOn').className = `btn-action btn-on ${p1 === "ON" ? "active" : ""}`;
-                document.getElementById('btnOff').className = `btn-action btn-off ${p1 === "OFF" ? "active" : ""}`;
 
+                // Update UI Sensor
+                document.getElementById('tempVal').innerText = (m.temperature || 0).toFixed(1);
+                document.getElementById('humVal').innerText = (m.humidity || 0).toFixed(1);
+                document.getElementById('soil1Val').innerText = m.soil1 || 0;
+                document.getElementById('soil2Val').innerText = m.soil2 || 0;
+                document.getElementById('ph1Val').innerText = (m.ph1 || 0).toFixed(1);
+                document.getElementById('ph2Val').innerText = (m.ph2 || 0).toFixed(1);
+                document.getElementById('lightVal').innerText = m.light || 0;
+                document.getElementById('lightSummary').innerText = (m.light || 0) + " lx";
+
+                // Update Control UI
+                const p1 = c.pump1 || "OFF";
+                document.getElementById('p1PowerInd').className = `w-4 h-4 rounded-full ${p1 === "ON" ? "bg-emerald-500 shadow-[0_0_15px_#10b981]" : "bg-slate-700"}`;
+                document.getElementById('btnOn').classList.toggle('active', p1 === "ON");
+                document.getElementById('btnOff').classList.toggle('active', p1 === "OFF");
+                
                 const roof = c.roof_angle || 90;
-                document.getElementById('servoValue').innerText = roof + "°";
+                document.getElementById('servoLabel').innerText = roof + "°";
+                document.getElementById('roofSummary').innerText = roof + "°";
                 if(document.activeElement.id !== "servoSlider") document.getElementById('servoSlider').value = roof;
 
-                // Update Charts & Table
-                updateHistory(now.toLocaleTimeString(), t, h, s, p);
+                // Sync Chart & Log
+                syncVisuals(time, m);
 
-            } catch (err) {
-                document.getElementById('connIndicator').className = "w-2.5 h-2.5 rounded-full bg-rose-500 mr-3";
+            } catch (e) {
+                document.getElementById('connIndicator').className = "w-2.5 h-2.5 rounded-full bg-rose-500 mr-3 animate-pulse";
                 document.getElementById('connText').innerText = "Cloud Offline";
+                document.getElementById('connText').className = "text-[10px] font-black text-rose-500 uppercase tracking-widest";
             }
         }
 
-        function updateHistory(time, t, h, s, p) {
-            // Push Chart
-            [charts.env, charts.soil].forEach(chart => {
-                chart.data.labels.push(time);
-                if(chart.data.labels.length > 10) chart.data.labels.shift();
+        function syncVisuals(time, m) {
+            // Push Charts
+            charts.env.data.labels.push(time);
+            charts.env.data.datasets[0].data.push(m.temperature);
+            charts.env.data.datasets[1].data.push(m.humidity);
+            charts.env.data.datasets[2].data.push(m.light);
+
+            charts.soil.data.labels.push(time);
+            charts.soil.data.datasets[0].data.push(m.soil1);
+            charts.soil.data.datasets[1].data.push(m.soil2);
+            charts.soil.data.datasets[2].data.push(m.ph1);
+            charts.soil.data.datasets[3].data.push(m.ph2);
+
+            [charts.env, charts.soil].forEach(c => {
+                if(c.data.labels.length > 20) { c.data.labels.shift(); c.data.datasets.forEach(d => d.data.shift()); }
+                c.update('quiet');
             });
-            charts.env.data.datasets[0].data.push(t);
-            charts.env.data.datasets[1].data.push(h);
-            charts.soil.data.datasets[0].data.push(s);
-            charts.soil.data.datasets[1].data.push(p);
-            charts.env.update('quiet'); charts.soil.update('quiet');
 
-            // Update Table
-            const tbody = document.getElementById('logTable');
-            const row = `<tr class="hover:bg-slate-800/30 transition-colors">
-                <td class="p-5 font-mono text-xs text-slate-500">${time}</td>
-                <td class="p-5 font-bold">${t}°C</td>
-                <td class="p-5 font-bold text-sky-400">${h}%</td>
-                <td class="p-5 font-bold text-emerald-400">${s}%</td>
-                <td class="p-5 font-bold text-purple-400">${p}</td>
+            // Table Update
+            const row = `<tr class="hover:bg-slate-800/50 transition-colors">
+                <td class="p-5 font-mono text-[10px] text-slate-500">${time}</td>
+                <td class="p-5">T:${(m.temperature||0).toFixed(1)}° | H:${(m.humidity||0).toFixed(1)}%</td>
+                <td class="p-5 text-emerald-400">S1:${m.soil1||0}% | S2:${m.soil2||0}%</td>
+                <td class="p-5 text-purple-400">P1:${(m.ph1||0).toFixed(1)} | P2:${(m.ph2||0).toFixed(1)}</td>
+                <td class="p-5 text-yellow-400">${m.light||0} lx</td>
             </tr>`;
-            tbody.insertAdjacentHTML('afterbegin', row);
-            if(tbody.children.length > 8) tbody.lastElementChild.remove();
+            const tb = document.getElementById('logTable');
+            tb.insertAdjacentHTML('afterbegin', row);
+            if(tb.children.length > 15) tb.lastElementChild.remove();
         }
 
-        async function controlDevice(path, val) {
+        async function control(path, val) {
             try {
-                await fetch(`${URL}control/${path}.json`, { method: 'PUT', body: JSON.stringify(val) });
-                notify(`Berhasil: ${path} set ke ${val}`);
-                fetchCloudData();
-            } catch (e) { notify("Gagal mengirim perintah!", true); }
+                await fetch(`${FB_URL}control/${path}.json`, { method: 'PUT', body: JSON.stringify(val) });
+                notify(`PERINTAH TERKIRIM: ${path} -> ${val}`);
+                updateData();
+            } catch (e) { notify("GAGAL TERHUBUNG KE CLOUD!", true); }
         }
 
-        function switchTab(id) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('nav-' + id).classList.add('active');
-        }
-
-        function notify(msg, isError = false) {
-            const container = document.getElementById('notificationContainer');
+        function notify(msg, isErr = false) {
             const el = document.createElement('div');
-            el.className = `notification show ${isError ? 'bg-rose-500' : 'bg-sky-600'}`;
+            el.className = `notification show ${isErr ? 'bg-rose-600' : 'bg-sky-600'}`;
             el.innerText = msg;
-            container.appendChild(el);
+            document.getElementById('notificationContainer').appendChild(el);
             setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 3000);
         }
 
-        window.onload = () => { initCharts(); fetchCloudData(); setInterval(fetchCloudData, 3000); };
+        window.onload = () => { initCharts(); updateData(); setInterval(updateData, 3000); };
     </script>
 </body>
 </html>
