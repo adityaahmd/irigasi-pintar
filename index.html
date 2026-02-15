@@ -3,206 +3,278 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Sistem Irigasi - SIP V3 Cloud</title>
+    <title>SIP V3 - Smart Irrigation Cloud</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        :root { --font-main: 'Inter', sans-serif; --sidebar-width: 240px; }
-        body { font-family: var(--font-main); background-color: #1f2937; color: #f3f4f6; transition: background 0.3s; }
-        .sidebar { width: var(--sidebar-width); background-color: #111827; border-right: 1px solid #374151; height: 100vh; flex-shrink: 0; }
-        .clean-card { background: #374151; border-radius: 12px; border: 1px solid #4b5563; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2); }
-        .nav-btn { display: flex; align-items: center; padding: 12px 16px; border-radius: 8px; color: #9ca3af; width: 100%; transition: all 0.2s; }
-        .nav-btn.active { background-color: #4b5563; color: #f3f4f6; font-weight: 600; }
-        .btn-action { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1px solid #4b5563; background: #374151; color: #f3f4f6; transition: 0.2s; width: 60px; }
-        .btn-action.active-green { background: #10b981; color: white; border-color: #10b981; }
-        .btn-action.active-red { background: #ef4444; color: white; border-color: #ef4444; }
-        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #d1d5db; margin-top: -6px; cursor: pointer; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #4b5563; border-radius: 2px; }
-        .notification-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .notification { padding: 12px 20px; border-radius: 8px; color: white; font-weight: 500; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: 0.3s; opacity: 0; transform: translateY(20px); }
-        .notification.show { opacity: 1; transform: translateY(0); }
+        :root { --sidebar-width: 240px; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        .sidebar { width: var(--sidebar-width); background-color: #1e293b; border-right: 1px solid #334155; }
+        .clean-card { background: #1e293b; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .nav-btn { display: flex; align-items: center; padding: 12px 16px; border-radius: 12px; color: #94a3b8; transition: 0.2s; width: 100%; }
+        .nav-btn.active { background-color: #334155; color: #f8fafc; font-weight: 600; }
+        .btn-action { padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; border: 1px solid #334155; transition: 0.3s; }
+        .btn-on.active { background: #10b981; color: white; border-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+        .btn-off.active { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        input[type=range] { -webkit-appearance: none; background: #334155; height: 6px; border-radius: 5px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #38bdf8; border-radius: 50%; cursor: pointer; border: 2px solid #f8fafc; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
 
     <aside class="sidebar flex flex-col hidden md:flex">
-        <div class="h-16 flex items-center px-6 border-b border-gray-800">
-            <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-gray-900 font-bold">S</div>
-            <span class="ml-3 font-bold text-lg tracking-tight">SIP <span class="font-normal text-gray-400">V3</span></span>
+        <div class="h-20 flex items-center px-8 border-b border-slate-700">
+            <div class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-sky-500/20">S</div>
+            <span class="ml-4 font-bold text-xl tracking-tight">SIP <span class="text-sky-400 font-light">V3</span></span>
         </div>
-        <nav class="flex-1 px-3 py-6 space-y-1">
-            <button class="nav-btn active">
-                <svg class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                Dashboard
-            </button>
+        <nav class="flex-1 px-4 py-8 space-y-2">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn active">Dashboard</button>
+            <button onclick="switchTab('grafik')" id="nav-grafik" class="nav-btn">Grafik Data</button>
+            <button onclick="switchTab('log')" id="nav-log" class="nav-btn">Riwayat Log</button>
         </nav>
-        <div class="p-4 border-t border-gray-800 text-[10px] text-gray-500 text-center uppercase font-bold">&copy; 2026 Smart Irrigation</div>
+        <div class="p-6 border-t border-slate-700 text-[10px] text-slate-500 text-center font-bold uppercase tracking-widest">&copy; 2026 CLOUD SYSTEM</div>
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header class="h-16 bg-gray-900/90 backdrop-blur border-b border-gray-800 flex justify-between items-center px-6">
-            <h1 class="text-lg font-bold">Sistem Irigasi Pintar</h1>
-            <div class="flex items-center gap-4">
-                <div class="flex items-center bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700">
-                    <div id="connIndicator" class="w-2 h-2 rounded-full bg-gray-600 mr-2"></div>
-                    <span id="connText" class="text-[10px] font-bold text-gray-400 uppercase">Offline</span>
+        <header class="h-20 bg-slate-900/50 backdrop-blur-md border-b border-slate-800 flex justify-between items-center px-8">
+            <h1 class="text-xl font-bold text-slate-100">Smart Irrigation Dashboard</h1>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center bg-slate-800 px-4 py-2 rounded-full border border-slate-700">
+                    <div id="connIndicator" class="w-2.5 h-2.5 rounded-full bg-slate-600 mr-3 animate-pulse"></div>
+                    <span id="connText" class="text-xs font-bold text-slate-400 uppercase tracking-tighter">Connecting...</span>
                 </div>
-                <div class="text-right hidden sm:block leading-tight">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold">Waktu Server</p>
-                    <p id="currentTime" class="text-sm font-mono font-medium text-gray-300">--:--:--</p>
+                <div class="text-right hidden sm:block">
+                    <p class="text-[10px] text-slate-500 uppercase font-black mb-0.5">Waktu Server</p>
+                    <p id="currentTime" class="text-sm font-mono text-sky-400">--:--:--</p>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 pb-20">
-            <div class="clean-card px-5 py-4 flex items-center justify-between flex-wrap gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 text-green-400">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-bold text-gray-500 uppercase">Status Operasional</p>
-                        <p id="systemStatus" class="text-sm font-semibold text-gray-300">Menghubungkan ke Cloud...</p>
-                    </div>
-                </div>
-                <div class="flex gap-6 text-[10px] uppercase font-bold text-gray-500">
-                    <div>Pompa <span id="pumpSummary" class="block text-sm text-gray-200">--</span></div>
-                    <div>Atap <span id="roofSummary" class="block text-sm text-gray-200">--</span></div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="clean-card p-4">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Suhu Udara</p>
-                    <p id="tempVal" class="text-2xl font-bold text-gray-100">--</p>
-                    <p class="text-[10px] mt-1 text-gray-500 italic">Celcius (°C)</p>
-                </div>
-                <div class="clean-card p-4">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Kelembapan</p>
-                    <p id="humVal" class="text-2xl font-bold text-gray-100">--</p>
-                    <p class="text-[10px] mt-1 text-gray-500 italic">Relatif (%)</p>
-                </div>
-                <div class="clean-card p-4">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Moisture Tanah</p>
-                    <p id="soilVal" class="text-2xl font-bold text-gray-100">--</p>
-                    <p class="text-[10px] mt-1 text-gray-500 italic">Soil 1 (%)</p>
-                </div>
-                <div class="clean-card p-4">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">pH Larutan</p>
-                    <p id="phVal" class="text-2xl font-bold text-gray-100">--</p>
-                    <p class="text-[10px] mt-1 text-gray-500 italic">pH 1</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="clean-card p-5">
-                    <h3 class="text-sm font-bold uppercase mb-4 tracking-widest flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Kontrol Pompa 1
-                    </h3>
-                    <div class="flex items-center justify-between bg-gray-800/50 p-4 rounded-xl border border-gray-700">
-                        <div class="flex items-center gap-3">
-                            <div id="p1PowerInd" class="w-3 h-3 rounded-full bg-gray-600 transition-all"></div>
-                            <span class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Power Status</span>
+        <main class="flex-1 overflow-y-auto p-6 space-y-6">
+            
+            <div id="dashboard" class="tab-content active space-y-6">
+                <div class="clean-card p-6 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
-                        <div class="flex gap-2">
-                            <button id="p1On" onclick="sendPump('ON')" class="btn-action">ON</button>
-                            <button id="p1Off" onclick="sendPump('OFF')" class="btn-action">OFF</button>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Status Sistem</p>
+                            <p id="systemMsg" class="text-sm font-bold text-slate-200">Menghubungkan ke database Singapura...</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="clean-card p-5 text-center">
-                    <h3 class="text-sm font-bold uppercase mb-4 tracking-widest flex items-center justify-center gap-2">
-                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> Atap (Servo)
-                    </h3>
-                    <div class="px-2">
-                        <input type="range" min="0" max="180" value="90" id="servoRange" onchange="sendServo(this.value)">
-                        <div class="flex justify-between items-center mt-3">
-                            <span class="text-[10px] font-bold text-gray-500 uppercase">Tutup (0°)</span>
-                            <span id="roofLabel" class="text-lg font-bold bg-gray-800 px-4 py-1 rounded-lg border border-gray-700 text-white">90°</span>
-                            <span class="text-[10px] font-bold text-gray-500 uppercase">Buka (180°)</span>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="clean-card p-5">
+                        <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Suhu Udara</p>
+                        <h2 id="tempVal" class="text-4xl font-black text-slate-100">--</h2>
+                        <p class="text-[10px] text-slate-500 mt-2 italic">Celcius (°C)</p>
+                    </div>
+                    <div class="clean-card p-5">
+                        <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Kelembapan</p>
+                        <h2 id="humVal" class="text-4xl font-black text-slate-100">--</h2>
+                        <p class="text-[10px] text-slate-500 mt-2 italic">Relative (%)</p>
+                    </div>
+                    <div class="clean-card p-5">
+                        <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Moisture Tanah</p>
+                        <h2 id="soilVal" class="text-4xl font-black text-slate-100">--</h2>
+                        <p class="text-[10px] text-slate-500 mt-2 italic">Sensor 1 (%)</p>
+                    </div>
+                    <div class="clean-card p-5">
+                        <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Kadar pH</p>
+                        <h2 id="phVal" class="text-4xl font-black text-slate-100">--</h2>
+                        <p class="text-[10px] text-slate-500 mt-2 italic">Larutan Nutrisi</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="clean-card p-6">
+                        <h3 class="text-sm font-black uppercase mb-6 tracking-widest text-slate-400">Kontrol Pompa Utama</h3>
+                        <div class="flex items-center justify-between bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                            <div class="flex items-center gap-4">
+                                <div id="p1Indicator" class="w-4 h-4 rounded-full bg-slate-700"></div>
+                                <span class="text-xs font-black text-slate-400 uppercase">Power Status</span>
+                            </div>
+                            <div class="flex gap-3">
+                                <button id="btnOn" onclick="controlDevice('pump1', 'ON')" class="btn-action btn-on">ON</button>
+                                <button id="btnOff" onclick="controlDevice('pump1', 'OFF')" class="btn-action btn-off">OFF</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clean-card p-6">
+                        <h3 class="text-sm font-black uppercase mb-6 tracking-widest text-slate-400 text-center">Atap (Servo)</h3>
+                        <div class="px-4">
+                            <input type="range" min="0" max="180" value="90" class="w-full" id="servoSlider" onchange="controlDevice('roof_angle', parseInt(this.value))">
+                            <div class="flex justify-between mt-6">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase">Tutup (0°)</span>
+                                <span id="servoValue" class="text-2xl font-black bg-slate-800 px-6 py-2 rounded-xl border border-slate-700 text-sky-400">90°</span>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase">Buka (180°)</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div id="grafik" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="clean-card p-6"><h3 class="text-xs font-bold mb-4 uppercase text-slate-400">Suhu & Kelembapan</h3><canvas id="chartEnvironment"></canvas></div>
+                    <div class="clean-card p-6"><h3 class="text-xs font-bold mb-4 uppercase text-slate-400">Moisture Tanah & pH</h3><canvas id="chartSoil"></canvas></div>
+                </div>
+            </div>
+
+            <div id="log" class="tab-content">
+                <div class="clean-card overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-800/50 text-[10px] uppercase font-black text-slate-500 border-b border-slate-700">
+                            <tr>
+                                <th class="p-5">Waktu</th>
+                                <th class="p-5">Suhu (°C)</th>
+                                <th class="p-5">Hum (%)</th>
+                                <th class="p-5">Soil (%)</th>
+                                <th class="p-5">pH</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTable" class="divide-y divide-slate-800 text-slate-300 font-medium">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <div id="notificationContainer" class="notification-container"></div>
+    <div id="notificationContainer" class="fixed bottom-8 right-8 z-[9999] flex flex-col gap-3"></div>
 
     <script>
-        // CONFIG UTAMA - Sesuai dengan Regional Asia-Southeast1 (Singapore)
-        const FIREBASE_URL = "https://myesp32control-a3605-default-rtdb.asia-southeast1.firebasedatabase.app/";
+        // CONFIG FIREBASE REGIONAL ASIA-SOUTHEAST1
+        const URL = "https://myesp32control-a3605-default-rtdb.asia-southeast1.firebasedatabase.app/";
+        
+        let charts = {};
 
-        async function updateDashboard() {
+        // Inisialisasi Grafik
+        function initCharts() {
+            const ctx1 = document.getElementById('chartEnvironment').getContext('2d');
+            charts.env = new Chart(ctx1, {
+                type: 'line',
+                data: { labels: [], datasets: [
+                    { label: 'Suhu', borderColor: '#f43f5e', data: [], tension: 0.4, fill: false },
+                    { label: 'Hum', borderColor: '#38bdf8', data: [], tension: 0.4, fill: false }
+                ]},
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            const ctx2 = document.getElementById('chartSoil').getContext('2d');
+            charts.soil = new Chart(ctx2, {
+                type: 'line',
+                data: { labels: [], datasets: [
+                    { label: 'Soil', borderColor: '#10b981', data: [], tension: 0.4, fill: false },
+                    { label: 'pH', borderColor: '#a855f7', data: [], tension: 0.4, fill: false }
+                ]},
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // Ambil Data dari Cloud
+        async function fetchCloudData() {
             try {
-                const res = await fetch(FIREBASE_URL + ".json");
+                const res = await fetch(URL + ".json");
                 const data = await res.json();
                 if(!data) return;
 
-                // Indikator Online
-                document.getElementById('connIndicator').className = "w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#4ade80] mr-2";
-                document.getElementById('connText').innerText = "Online";
-                document.getElementById('systemStatus').innerText = "✓ Sistem Berjalan Normal";
-                document.getElementById('currentTime').innerText = new Date().toLocaleTimeString('id-ID');
+                // Update Status UI
+                document.getElementById('connIndicator').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_12px_#10b981] mr-3";
+                document.getElementById('connText').innerText = "Cloud Online";
+                document.getElementById('systemMsg').innerText = "✓ Komunikasi Cloud Lancar";
+                const now = new Date();
+                document.getElementById('currentTime').innerText = now.toLocaleTimeString('id-ID');
 
                 // Update Sensor (Folder /monitoring)
                 const m = data.monitoring || {};
-                document.getElementById('tempVal').innerText = (m.temperature || 0).toFixed(1);
-                document.getElementById('humVal').innerText = (m.humidity || 0).toFixed(1);
-                document.getElementById('soilVal').innerText = (m.soil1 || 0);
-                document.getElementById('phVal').innerText = (m.ph1 || 0).toFixed(1);
+                const t = (m.temperature || 0).toFixed(1);
+                const h = (m.humidity || 0).toFixed(1);
+                const s = m.soil1 || 0;
+                const p = (m.ph1 || 0).toFixed(1);
 
-                // Update Status Aktuator (Folder /control)
+                document.getElementById('tempVal').innerText = t;
+                document.getElementById('humVal').innerText = h;
+                document.getElementById('soilVal').innerText = s;
+                document.getElementById('phVal').innerText = p;
+
+                // Update Controls (Folder /control)
                 const c = data.control || {};
                 const p1 = c.pump1 || "OFF";
-                document.getElementById('pumpSummary').innerText = p1;
-                document.getElementById('p1PowerInd').className = `w-3 h-3 rounded-full ${p1 === "ON" ? "bg-green-500 shadow-[0_0_8px_#4ade80]" : "bg-gray-600"}`;
-                
-                // Button Toggle Style
-                document.getElementById('p1On').classList.toggle('active-green', p1 === "ON");
-                document.getElementById('p1Off').classList.toggle('active-red', p1 === "OFF");
+                document.getElementById('p1Indicator').className = `w-4 h-4 rounded-full ${p1 === "ON" ? "bg-emerald-500 shadow-lg shadow-emerald-500/50" : "bg-slate-700"}`;
+                document.getElementById('btnOn').className = `btn-action btn-on ${p1 === "ON" ? "active" : ""}`;
+                document.getElementById('btnOff').className = `btn-action btn-off ${p1 === "OFF" ? "active" : ""}`;
 
                 const roof = c.roof_angle || 90;
-                document.getElementById('roofSummary').innerText = roof + "°";
-                document.getElementById('roofLabel').innerText = roof + "°";
-                if(document.activeElement.id !== "servoRange") document.getElementById('servoRange').value = roof;
+                document.getElementById('servoValue').innerText = roof + "°";
+                if(document.activeElement.id !== "servoSlider") document.getElementById('servoSlider').value = roof;
 
-            } catch (e) {
-                document.getElementById('connIndicator').className = "w-2 h-2 rounded-full bg-red-500 mr-2";
-                document.getElementById('connText').innerText = "Offline";
-                document.getElementById('systemStatus').innerText = "⚠ Gagal Sinkronisasi Cloud";
+                // Update Charts & Table
+                updateHistory(now.toLocaleTimeString(), t, h, s, p);
+
+            } catch (err) {
+                document.getElementById('connIndicator').className = "w-2.5 h-2.5 rounded-full bg-rose-500 mr-3";
+                document.getElementById('connText').innerText = "Cloud Offline";
             }
         }
 
-        async function sendPump(state) {
-            try {
-                await fetch(`${FIREBASE_URL}control/pump1.json`, { method: 'PUT', body: JSON.stringify(state) });
-                showNotify(`Pompa 1: ${state}`, 'bg-green-600');
-                updateDashboard();
-            } catch (e) { showNotify(`Error Kontrol!`, 'bg-red-600'); }
+        function updateHistory(time, t, h, s, p) {
+            // Push Chart
+            [charts.env, charts.soil].forEach(chart => {
+                chart.data.labels.push(time);
+                if(chart.data.labels.length > 10) chart.data.labels.shift();
+            });
+            charts.env.data.datasets[0].data.push(t);
+            charts.env.data.datasets[1].data.push(h);
+            charts.soil.data.datasets[0].data.push(s);
+            charts.soil.data.datasets[1].data.push(p);
+            charts.env.update('quiet'); charts.soil.update('quiet');
+
+            // Update Table
+            const tbody = document.getElementById('logTable');
+            const row = `<tr class="hover:bg-slate-800/30 transition-colors">
+                <td class="p-5 font-mono text-xs text-slate-500">${time}</td>
+                <td class="p-5 font-bold">${t}°C</td>
+                <td class="p-5 font-bold text-sky-400">${h}%</td>
+                <td class="p-5 font-bold text-emerald-400">${s}%</td>
+                <td class="p-5 font-bold text-purple-400">${p}</td>
+            </tr>`;
+            tbody.insertAdjacentHTML('afterbegin', row);
+            if(tbody.children.length > 8) tbody.lastElementChild.remove();
         }
 
-        async function sendServo(val) {
+        async function controlDevice(path, val) {
             try {
-                await fetch(`${FIREBASE_URL}control/roof_angle.json`, { method: 'PUT', body: JSON.stringify(parseInt(val)) });
-                showNotify(`Atap: ${val}°`, 'bg-blue-600');
-            } catch (e) { showNotify(`Error Atap!`, 'bg-red-600'); }
+                await fetch(`${URL}control/${path}.json`, { method: 'PUT', body: JSON.stringify(val) });
+                notify(`Berhasil: ${path} set ke ${val}`);
+                fetchCloudData();
+            } catch (e) { notify("Gagal mengirim perintah!", true); }
         }
 
-        function showNotify(msg, color) {
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('nav-' + id).classList.add('active');
+        }
+
+        function notify(msg, isError = false) {
             const container = document.getElementById('notificationContainer');
             const el = document.createElement('div');
-            el.className = `notification show ${color}`;
+            el.className = `notification show ${isError ? 'bg-rose-500' : 'bg-sky-600'}`;
             el.innerText = msg;
             container.appendChild(el);
             setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 3000);
         }
 
-        setInterval(updateDashboard, 3000);
-        updateDashboard();
+        window.onload = () => { initCharts(); fetchCloudData(); setInterval(fetchCloudData, 3000); };
     </script>
 </body>
 </html>
