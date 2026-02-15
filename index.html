@@ -1,160 +1,171 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Irrigation Dashboard</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Sistem Irigasi - SIP V3 Cloud</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #1e3a8a 0%, #10b981 100%);
-            min-height: 100vh;
-            color: white;
-        }
-        .glass {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 1.5rem;
-        }
-        .status-dot {
-            height: 10px; width: 10px; border-radius: 50%; display: inline-block;
-        }
+        :root { --font-main: 'Inter', sans-serif; --sidebar-width: 240px; }
+        body { font-family: var(--font-main); background-color: #f3f4f6; color: #374151; }
+        body.dark-mode { background-color: #1f2937; color: #f3f4f6; }
+        .sidebar { width: var(--sidebar-width); transition: width 0.3s; overflow: hidden; white-space: nowrap; }
+        .sidebar.collapsed { width: 70px; }
+        .clean-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02); }
+        body.dark-mode .clean-card { background: #374151; border: 1px solid #4b5563; }
+        .btn-action { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: all 0.2s; border: 1px solid #e5e7eb; background: white; color: #374151; }
+        .btn-action.active-black { background: #1f2937; color: white; border-color: #1f2937; }
+        body.dark-mode .btn-action { background: #374151; color: #f3f4f6; border-color: #4b5563; }
+        body.dark-mode .btn-action.active-black { background: #d1d5db; color: #1f2937; }
+        .notification-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .notification { padding: 12px 20px; border-radius: 8px; color: white; font-weight: 500; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateX(400px); transition: 0.3s; }
+        .notification.show { transform: translateX(0); }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="h-screen flex overflow-hidden">
 
-    <div class="max-w-5xl mx-auto">
-        <header class="flex justify-between items-center mb-8 glass p-6">
-            <div>
-                <h1 class="text-2xl font-bold">Irigasi Pintar V3</h1>
-                <p class="text-sm opacity-80" id="clock">Memuat waktu...</p>
+    <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col z-20 dark:bg-gray-900 dark:border-gray-700">
+        <div class="h-16 flex items-center px-6 border-b border-gray-100 dark:border-gray-800">
+            <div class="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center text-white font-bold">S</div>
+            <span class="ml-3 font-bold text-lg tracking-tight dark:text-white">SIP <span class="font-normal text-gray-400">V3</span></span>
+        </div>
+        <nav class="flex-1 px-3 py-6 space-y-1">
+            <button class="flex items-center w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-800 font-semibold dark:text-white">Dashboard</button>
+        </nav>
+        <div class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center">&copy; 2026 Smart Irrigation</div>
+    </aside>
+
+    <div class="flex-1 flex flex-col h-full relative min-w-0">
+        <header class="h-16 bg-white/90 backdrop-blur border-b border-gray-200 flex justify-between items-center px-4 dark:bg-gray-800 dark:border-gray-700">
+            <div class="flex items-center gap-4">
+                <h1 class="text-base md:text-lg font-bold dark:text-white">Dashboard Irigasi Pintar</h1>
             </div>
-            <div class="text-right">
-                <div class="flex items-center justify-end gap-2">
-                    <span id="indicator" class="status-dot bg-gray-400"></span>
-                    <span id="connText" class="font-semibold text-sm">Menghubungkan...</span>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 dark:bg-gray-700 dark:border-gray-600">
+                    <div id="connIndicator" class="w-2 h-2 rounded-full bg-gray-300 mr-2"></div>
+                    <span id="connText" class="text-xs font-semibold text-gray-500 dark:text-gray-300">Offline</span>
                 </div>
-                <p class="text-[10px] uppercase tracking-widest opacity-60">Firebase Cloud System</p>
+                <button onclick="document.body.classList.toggle('dark-mode')" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">🌓</button>
             </div>
         </header>
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="glass p-6 text-center">
-                <p class="text-xs uppercase opacity-70 mb-2">Suhu Udara</p>
-                <h2 class="text-3xl font-bold" id="temp">--°C</h2>
-            </div>
-            <div class="glass p-6 text-center">
-                <p class="text-xs uppercase opacity-70 mb-2">Tanah 1</p>
-                <h2 class="text-3xl font-bold" id="soil">--%</h2>
-            </div>
-            <div class="glass p-6 text-center">
-                <p class="text-xs uppercase opacity-70 mb-2">Kelembapan</p>
-                <h2 class="text-3xl font-bold" id="hum">--%</h2>
-            </div>
-            <div class="glass p-6 text-center">
-                <p class="text-xs uppercase opacity-70 mb-2">pH Tanah</p>
-                <h2 class="text-3xl font-bold" id="ph">--</h2>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="glass p-8">
-                <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    Kontrol Pompa Utama
-                </h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="sendPump('ON')" id="btnOn" class="py-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all font-bold">NYALAKAN</button>
-                    <button onclick="sendPump('OFF')" id="btnOff" class="py-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all font-bold">MATIKAN</button>
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="clean-card p-4">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Suhu Udara</p>
+                    <p id="tempValue" class="text-2xl font-bold text-gray-800 dark:text-white">--</p>
+                    <span class="text-[10px] text-gray-400">Celcius (°C)</span>
                 </div>
-                <p class="mt-4 text-center text-xs opacity-60" id="pumpStatus">Status saat ini: Memuat...</p>
-            </div>
-
-            <div class="glass p-8">
-                <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                    Kontrol Atap (Servo)
-                </h3>
-                <input type="range" min="0" max="180" value="90" 
-                       class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white"
-                       onchange="sendServo(this.value)" id="servoRange">
-                <div class="flex justify-between mt-4 text-sm font-bold">
-                    <span>0°</span>
-                    <span id="servoVal" class="text-xl bg-white/20 px-4 py-1 rounded-lg">90°</span>
-                    <span>180°</span>
+                <div class="clean-card p-4">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Kelembapan</p>
+                    <p id="humValue" class="text-2xl font-bold text-gray-800 dark:text-white">--</p>
+                    <span class="text-[10px] text-gray-400">Relatif (%)</span>
+                </div>
+                <div class="clean-card p-4">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Moisture Tanah</p>
+                    <p id="soil1Value" class="text-2xl font-bold text-gray-800 dark:text-white">--</p>
+                    <span class="text-[10px] text-gray-400">Soil 1 (%)</span>
+                </div>
+                <div class="clean-card p-4">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">pH Larutan</p>
+                    <p id="ph1Value" class="text-2xl font-bold text-gray-800 dark:text-white">--</p>
+                    <span class="text-[10px] text-gray-400">pH 1</span>
                 </div>
             </div>
-        </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="clean-card p-5">
+                    <h3 class="text-sm font-bold text-gray-800 uppercase dark:text-white mb-4">Kontrol Pompa Utama</h3>
+                    <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg dark:bg-gray-800">
+                        <span id="pump1Status" class="text-xs font-bold text-gray-500">STATUS: --</span>
+                        <div class="flex gap-2">
+                            <button id="btnPumpOn" onclick="sendControl('pump1', 'ON')" class="btn-action">ON</button>
+                            <button id="btnPumpOff" onclick="sendControl('pump1', 'OFF')" class="btn-action">OFF</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="clean-card p-5">
+                    <h3 class="text-sm font-bold text-gray-800 uppercase dark:text-white mb-4">Kontrol Atap (Servo)</h3>
+                    <input type="range" min="0" max="180" value="90" id="servoRange" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mb-2" onchange="sendControl('roof_angle', parseInt(this.value))">
+                    <div class="flex justify-between text-[10px] font-bold text-gray-400 uppercase">
+                        <span>Tutup (0°)</span>
+                        <span id="servoValue" class="text-gray-800 dark:text-white">90°</span>
+                        <span>Buka (180°)</span>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
+    <div id="notificationContainer" class="notification-container"></div>
+
     <script>
-        // CONFIG - Pastikan URL ini sudah benar (asia-southeast1)
+        // CONFIG SINKRONISASI ASIA-SOUTHEAST1
         const FB_URL = "https://myesp32control-a3605-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
-        // 1. Ambil Data (Monitoring)
         async function updateDashboard() {
             try {
-                const response = await fetch(FB_URL + ".json");
-                const data = await response.json();
+                const res = await fetch(FB_URL + ".json");
+                const db = await res.json();
+                if(!db) return;
+
+                // Status Koneksi
+                document.getElementById('connIndicator').className = "w-2 h-2 rounded-full bg-green-500 mr-2";
+                document.getElementById('connText').innerText = "Cloud Online";
+
+                // Update Monitoring Sensor
+                const m = db.monitoring || {};
+                document.getElementById('tempValue').innerText = (m.temperature || 0).toFixed(1);
+                document.getElementById('humValue').innerText = (m.humidity || 0).toFixed(1);
+                document.getElementById('soil1Value').innerText = (m.soil1 || 0);
+                document.getElementById('ph1Value').innerText = (m.ph1 || 0).toFixed(1);
+
+                // Update UI Control State
+                const c = db.control || {};
+                const p1 = c.pump1 || "OFF";
+                document.getElementById('pump1Status').innerText = "STATUS: " + p1;
+                document.getElementById('btnPumpOn').classList.toggle('active-black', p1 === "ON");
+                document.getElementById('btnPumpOff').classList.toggle('active-black', p1 === "OFF");
                 
-                if (data) {
-                    // Update Indikator Online
-                    document.getElementById('indicator').className = "status-dot bg-green-400 shadow-[0_0_8px_#4ade80]";
-                    document.getElementById('connText').innerText = "Cloud Online";
-
-                    // Update Monitoring (sesuai folder /monitoring di ESP32)
-                    const m = data.monitoring || {};
-                    document.getElementById('temp').innerText = (m.temperature || 0).toFixed(1) + "°C";
-                    document.getElementById('hum').innerText = (m.humidity || 0).toFixed(1) + "%";
-                    document.getElementById('soil').innerText = (m.soil1 || 0) + "%";
-                    document.getElementById('ph').innerText = (m.ph1 || 0).toFixed(1);
-
-                    // Update Status Pompa
-                    const pStatus = data.control ? data.control.pump1 : "OFF";
-                    document.getElementById('pumpStatus').innerText = "Status saat ini: " + pStatus;
-                    
-                    // Style Tombol Aktif
-                    document.getElementById('btnOn').className = pStatus === "ON" ? "py-4 rounded-xl bg-green-500 border-none font-bold shadow-lg" : "py-4 rounded-xl bg-white/10 border border-white/20 font-bold";
-                    document.getElementById('btnOff').className = pStatus === "OFF" ? "py-4 rounded-xl bg-red-500 border-none font-bold shadow-lg" : "py-4 rounded-xl bg-white/10 border border-white/20 font-bold";
+                const roof = c.roof_angle || 90;
+                document.getElementById('servoValue').innerText = roof + "°";
+                if(document.activeElement.id !== "servoRange") {
+                    document.getElementById('servoRange').value = roof;
                 }
-            } catch (err) {
-                document.getElementById('indicator').className = "status-dot bg-red-500";
-                document.getElementById('connText').innerText = "Cloud Offline";
+
+            } catch (e) {
+                document.getElementById('connIndicator').className = "w-2 h-2 rounded-full bg-red-500 mr-2";
+                document.getElementById('connText').innerText = "Offline";
             }
         }
 
-        // 2. Kirim Perintah (Control)
-        async function sendPump(state) {
+        async function sendControl(target, value) {
             try {
-                await fetch(`${FB_URL}control/pump1.json`, {
+                await fetch(`${FB_URL}control/${target}.json`, {
                     method: 'PUT',
-                    body: JSON.stringify(state)
+                    body: JSON.stringify(value)
                 });
+                showNotification(`Berhasil: ${target} -> ${value}`, 'success');
                 updateDashboard();
-            } catch (e) { alert("Gagal mengirim perintah"); }
+            } catch (e) {
+                showNotification(`Gagal mengirim perintah!`, 'error');
+            }
         }
 
-        async function sendServo(val) {
-            document.getElementById('servoVal').innerText = val + "°";
-            try {
-                await fetch(`${FB_URL}control/roof_angle.json`, {
-                    method: 'PUT',
-                    body: JSON.stringify(parseInt(val))
-                });
-            } catch (e) { console.error(e); }
+        function showNotification(msg, type) {
+            const container = document.getElementById('notificationContainer');
+            const div = document.createElement('div');
+            div.className = `notification show ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
+            div.innerText = msg;
+            container.appendChild(div);
+            setTimeout(() => { div.classList.remove('show'); setTimeout(() => div.remove(), 300); }, 3000);
         }
-
-        // Clock & Polling
-        setInterval(() => {
-            const n = new Date();
-            document.getElementById('clock').innerText = n.toLocaleTimeString('id-ID');
-        }, 1000);
 
         setInterval(updateDashboard, 3000);
-        updateDashboard(); // Run pertama kali
+        updateDashboard();
     </script>
 </body>
 </html>
