@@ -3,1131 +3,150 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Sistem Irigasi - Minimalist White (API Driven)</title>
+    <title>Sistem Irigasi - Dashboard Cloud</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        :root {
-            --font-main: 'Inter', sans-serif;
-            --sidebar-width: 240px;
-            --sidebar-mini: 70px;
-        }
-        body {
-            font-family: var(--font-main);
-            background-color: #f3f4f6;
-            color: #374151;
-        }
-
-        /* --- Dark Mode Variables --- */
-        body.dark-mode {
-            background-color: #1f2937;
-            color: #f3f4f6;
-        }
-
-        /* --- Sidebar Logic --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        
-        .sidebar.collapsed {
-            width: var(--sidebar-mini);
-        }
-        
-        .sidebar.collapsed .logo-text, 
-        .sidebar.collapsed .nav-label,
-        .sidebar.collapsed .footer-text {
-            opacity: 0;
-            pointer-events: none;
-            display: none;
-        }
-        
-        .sidebar.collapsed .nav-btn {
-            justify-content: center;
-            padding-left: 0;
-            padding-right: 0;
-        }
-        .sidebar.collapsed .logo-container {
-            justify-content: center;
-            padding-left: 0;
-            padding-right: 0;
-        }
-
-        /* --- UI Components --- */
-        .clean-card {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
-        }
-
-        body.dark-mode .clean-card {
-            background: #374151;
-            border: 1px solid #4b5563;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
-        }
-
-        .nav-btn {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            margin-bottom: 4px;
-            border-radius: 8px;
-            font-weight: 500;
-            color: #6b7280;
-            transition: all 0.2s;
-        }
-        .nav-btn:hover { background-color: #f9fafb; color: #111827; }
-        .nav-btn.active { background-color: #f3f4f6; color: #111827; font-weight: 600; }
-
-        body.dark-mode .nav-btn {
-            color: #9ca3af;
-        }
-        body.dark-mode .nav-btn:hover { background-color: #374151; color: #f3f4f6; }
-        body.dark-mode .nav-btn.active { background-color: #4b5563; color: #f3f4f6; font-weight: 600; }
-
-        /* Tombol Slider & Aksi */
-        .btn-action {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.2s;
-            border: 1px solid #e5e7eb;
-            background: white;
-            color: #374151;
-        }
-        .btn-action:hover { border-color: #d1d5db; background: #f9fafb; }
+        :root { --font-main: 'Inter', sans-serif; --sidebar-width: 240px; }
+        body { font-family: var(--font-main); background-color: #f3f4f6; color: #374151; transition: background 0.3s; }
+        body.dark-mode { background-color: #1f2937; color: #f3f4f6; }
+        .clean-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.25rem; }
+        body.dark-mode .clean-card { background: #374151; border-color: #4b5563; }
+        .btn-action { padding: 8px 16px; border-radius: 8px; border: 1px solid #e5e7eb; background: white; font-size: 13px; font-weight: 600; transition: 0.2s; }
         .btn-action.active-black { background: #1f2937; color: white; border-color: #1f2937; }
-        .btn-action.pointer-events-none { cursor: not-allowed; }
-        
-        body.dark-mode .btn-action {
-            background: #374151;
-            color: #f3f4f6;
-            border-color: #4b5563;
-        }
-        body.dark-mode .btn-action:hover { border-color: #6b7280; background: #4b5563; }
-        body.dark-mode .btn-action.active-black { background: #d1d5db; color: #1f2937; border-color: #d1d5db; }
-        
-        /* Slider Range */
-        input[type=range] { -webkit-appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
-            background: #1f2937; margin-top: -6px; cursor: pointer;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px;
-        }
-        
-        body.dark-mode input[type=range]::-webkit-slider-thumb {
-            background: #d1d5db;
-        }
-        body.dark-mode input[type=range]::-webkit-slider-runnable-track {
-            background: #4b5563;
-        }
-        
-        /* Scrollbar Halus */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-
-        body.dark-mode ::-webkit-scrollbar-thumb { background: #4b5563; }
-
-        /* Status Colors */
-        .bg-green-500 { background-color: #10b981; }
-        .bg-orange-500 { background-color: #f97316; }
-        .bg-red-500 { background-color: #ef4444; }
-        .bg-gray-500 { background-color: #6b7280; }
-        .text-green-600 { color: #059669; }
-        .text-orange-500 { color: #f97316; }
-        .text-blue-600 { color: #2563eb; }
-        .text-red-600 { color: #dc2626; }
-        .text-gray-600 { color: #4b5563; }
-        .opacity-50 { opacity: 0.5; }
-
-        body.dark-mode .text-gray-600 { color: #d1d5db; }
-        body.dark-mode .text-gray-800 { color: #f3f4f6; }
-        body.dark-mode .text-gray-700 { color: #f3f4f6; }
-        body.dark-mode .text-gray-500 { color: #d1d5db; }
-        body.dark-mode .text-gray-400 { color: #9ca3af; }
-        body.dark-mode .text-green-600 { color: #34d399; }
-        body.dark-mode .text-orange-500 { color: #fb923c; }
-        body.dark-mode .text-blue-600 { color: #60a5fa; }
-        body.dark-mode .text-red-600 { color: #f87171; }
-
-        body.dark-mode .sidebar {
-            background-color: #111827;
-            border-color: #374151;
-        }
-
-        body.dark-mode header {
-            background-color: rgba(17, 24, 39, 0.9);
-            border-color: #374151;
-        }
-
-        body.dark-mode table {
-            color: #d1d5db;
-        }
-        body.dark-mode thead {
-            background-color: #374151;
-            color: #f3f4f6;
-        }
-        body.dark-mode tbody tr {
-            border-color: #374151;
-        }
-        body.dark-mode tbody tr:hover {
-            background-color: #374151;
-        }
-
-        body.dark-mode .bg-gray-50 {
-            background-color: #374151;
-        }
-        body.dark-mode .bg-gray-100 {
-            background-color: #4b5563;
-        }
-        body.dark-mode .border-gray-100 {
-            border-color: #4b5563;
-        }
-        body.dark-mode .border-gray-200 {
-            border-color: #374151;
-        }
-        body.dark-mode .hover\:bg-gray-100:hover {
-            background-color: #4b5563;
-        }
-        body.dark-mode .hover\:bg-gray-50:hover {
-            background-color: #374151;
-        }
-
-        /* --- Notifikasi Toast --- */
-        .notification-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .notification {
-            padding: 12px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateX(400px);
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            opacity: 0;
-        }
-        .notification.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        .notification.success { background-color: #10b981; }
-        .notification.error { background-color: #ef4444; }
-        .notification.info { background-color: #3b82f6; }
+        body.dark-mode .btn-action { background: #4b5563; color: white; border-color: #6b7280; }
+        body.dark-mode .btn-action.active-black { background: #f3f4f6; color: #1f2937; }
+        .notification-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .notification { padding: 12px 20px; border-radius: 8px; color: white; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateX(400px); transition: 0.3s; }
+        .notification.show { transform: translateX(0); }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
 
-    <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col z-20">
-        <div class="h-16 flex items-center px-6 border-b border-gray-100 logo-container transition-all">
-            <div class="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
-                S
-            </div>
-            <span class="logo-text ml-3 font-bold text-lg tracking-tight text-gray-800">SIP <span class="font-normal text-gray-400">V3</span></span>
+    <aside class="w-60 bg-white border-r border-gray-200 flex flex-col hidden md:flex dark:bg-gray-900 dark:border-gray-700">
+        <div class="h-16 flex items-center px-6 border-b border-gray-100 dark:border-gray-800">
+            <span class="font-bold text-lg text-gray-800 dark:text-white">SIP <span class="font-normal text-gray-400">V3</span></span>
         </div>
-
-        <nav class="flex-1 px-3 py-6 space-y-1">
-            <button class="nav-btn w-full active" data-target="dashboard" title="Dashboard">
-                <svg class="w-5 h-5 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                <span class="nav-label ml-3">Dashboard</span>
-            </button>
-            <button class="nav-btn w-full" data-target="grafik" title="Grafik & Analitik">
-                <svg class="w-5 h-5 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4 2 2M3 12h18M5 15h14M5 9h14"/></svg>
-                <span class="nav-label ml-3">Grafik Data</span>
-            </button>
-            <button class="nav-btn w-full" data-target="ringkasan" title="Riwayat Data">
-                <svg class="w-5 h-5 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span class="nav-label ml-3">Riwayat Log</span>
-            </button>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <button class="flex items-center w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-800 font-semibold">Dashboard</button>
         </nav>
-        
-        <div class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center footer-text">
-            &copy; 2025 Smart System
-        </div>
+        <div class="p-4 text-xs text-gray-400 text-center">&copy; 2026 Smart Irrigation</div>
     </aside>
 
-    <div class="flex-1 flex flex-col h-full relative min-w-0">
-        
-        <header class="h-16 bg-white/90 backdrop-blur border-b border-gray-200 flex justify-between items-center px-4 sticky top-0 z-10">
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-16 bg-white border-b border-gray-200 flex justify-between items-center px-6 dark:bg-gray-800 dark:border-gray-700">
+            <h1 class="font-bold text-gray-800 dark:text-white">Sistem Irigasi Cloud</h1>
             <div class="flex items-center gap-4">
-                <button id="burgerBtn" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-                <h1 class="text-base md:text-lg font-bold text-gray-800 truncate">Sistem Irigasi Pintar</h1>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <div class="hidden sm:block text-right">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Waktu Server</p>
-                    <p id="currentTime" class="text-sm font-mono font-medium text-gray-700">--:--:--</p>
+                <div class="flex items-center bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 dark:bg-gray-700 dark:border-gray-600">
+                    <div id="connIndicator" class="w-2 h-2 rounded-full bg-gray-400 mr-2"></div>
+                    <span id="connText" class="text-xs font-bold text-gray-500 dark:text-gray-300">Connecting...</span>
                 </div>
-                <div class="flex items-center bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-                    <div id="connIndicator" class="w-2 h-2 rounded-full bg-gray-300 mr-2"></div>
-                    <span id="connText" class="text-xs font-semibold text-gray-500">Offline</span>
-                </div>
-                <!-- Dark Mode Toggle -->
-                <button id="darkModeToggle" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors focus:outline-none">
-                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                    </svg>
-                    <svg class="w-6 h-6 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                    </svg>
-                </button>
+                <button id="darkModeToggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">🌓</button>
             </div>
         </header>
 
-        <div id="contentArea" class="flex-1 overflow-hidden relative p-4 md:p-6">
-            
-            <main id="dashboard" class="tab-content h-full flex flex-col gap-6 overflow-y-auto pb-20">
-                
-                <div class="clean-card px-5 py-4 flex items-center justify-between flex-wrap gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-600">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                        <div>
-                            <p class="text-xs font-medium text-gray-400 uppercase">Status Operasional</p>
-                            <p id="systemStatus" class="text-sm font-semibold text-gray-700">Menunggu koneksi...</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4 md:gap-8 text-sm">
-                        <div><span class="block text-[10px] text-gray-400 uppercase font-bold">Pompa</span><span id="pumpSummary" class="font-bold text-gray-800">-/—</span></div>
-                        <div><span class="block text-[10px] text-gray-400 uppercase font-bold">Atap</span><span id="roofAngleSummary" class="font-bold text-gray-800">—</span></div>
-                        <div><span class="block text-[10px] text-gray-400 uppercase font-bold">Cahaya</span><span id="lightSummary" class="font-bold text-gray-800">—</span></div>
+        <main class="flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="clean-card">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Suhu Udara</p>
+                    <p id="tempValue" class="text-2xl font-bold text-gray-800 dark:text-white">--°C</p>
+                </div>
+                <div class="clean-card">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Tanah 1</p>
+                    <p id="soil1Value" class="text-2xl font-bold text-gray-800 dark:text-white">--%</p>
+                </div>
+                <div class="clean-card">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">pH Larutan</p>
+                    <p id="ph1Value" class="text-2xl font-bold text-gray-800 dark:text-white">--</p>
+                </div>
+                <div class="clean-card">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Kelembapan</p>
+                    <p id="humValue" class="text-2xl font-bold text-gray-800 dark:text-white">--%</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="clean-card">
+                    <h3 class="text-sm font-bold mb-4 uppercase">Kontrol Pompa 1</h3>
+                    <div class="flex gap-2">
+                        <button onclick="setPumpState(1, 'ON')" class="btn-action w-full" id="p1On">ON</button>
+                        <button onclick="setPumpState(1, 'OFF')" class="btn-action w-full" id="p1Off">OFF</button>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">pH Larutan (pH1)</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">pH</span>
-                        </div>
-                        <p id="ph1Value" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="ph1Status" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Tanah 1</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">%</span>
-                        </div>
-                        <p id="soil1Value" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="soil1Status" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Suhu Udara</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">°C</span>
-                        </div>
-                        <p id="tempValue" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="tempStatus" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Kelembapan Udara</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">%</span>
-                        </div>
-                        <p id="humValue" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="humStatus" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">pH Tanah 2</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">pH</span>
-                        </div>
-                        <p id="ph2Value" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="ph2Status" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Tanah 2</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">%</span>
-                        </div>
-                        <p id="soil2Value" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="soil2Status" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Intensitas Cahaya</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">lx</span>
-                        </div>
-                        <p id="lightValue" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="lightStatus" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 flex items-center justify-center border-dashed bg-gray-50">
-                        <span class="text-[10px] font-bold text-gray-300 uppercase">Cadangan</span>
-                    </div>
+                <div class="clean-card">
+                    <h3 class="text-sm font-bold mb-4 uppercase">Atap (Servo)</h3>
+                    <input type="range" min="0" max="180" value="90" class="w-full" onchange="setServo(this.value)">
+                    <p class="text-center mt-2 font-bold" id="roofLabel">90°</p>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="clean-card p-5 flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-gray-800 uppercase">Pompa Zona 1</h3>
-                            <div class="flex bg-gray-100 p-1 rounded-lg">
-                                <button id="pump1ModeAuto" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all active-black">Auto</button>
-                                <button id="pump1ModeManual" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all text-gray-500">Manual</button>
-                            </div>
-                        </div>
-                        <div class="mt-auto flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-100">
-                            <div class="flex items-center gap-2">
-                                <div id="pump1Indicator" class="w-3 h-3 rounded-full bg-gray-300 transition-colors"></div>
-                                <span class="text-xs font-medium text-gray-500">Power</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="pump1BtnOn" class="btn-action text-xs">ON</button>
-                                <button id="pump1BtnOff" class="btn-action text-xs active-black">OFF</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="clean-card p-5 flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-gray-800 uppercase">Pompa Zona 2 (Relay 2)</h3>
-                            <div class="flex bg-gray-100 p-1 rounded-lg">
-                                <button id="pump2ModeAuto" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all active-black">Auto</button>
-                                <button id="pump2ModeManual" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all text-gray-500">Manual</button>
-                            </div>
-                        </div>
-                        <div class="mt-auto flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-100">
-                            <div class="flex items-center gap-2">
-                                <div id="pump2Indicator" class="w-3 h-3 rounded-full bg-gray-300 transition-colors"></div>
-                                <span class="text-xs font-medium text-gray-500">Power</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="pump2BtnOn" class="btn-action text-xs">ON</button>
-                                <button id="pump2BtnOff" class="btn-action text-xs active-black">OFF</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="clean-card p-5 flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-gray-800 uppercase">Kontrol Atap (Servo)</h3>
-                            <div class="flex bg-gray-100 p-1 rounded-lg">
-                                <button id="roofModeAuto" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all active-black">Auto</button>
-                                <button id="roofModeManual" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all text-gray-500">Manual</button>
-                            </div>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center gap-3">
-                                <button id="btnCloseRoof" class="btn-action w-full text-xs">Tutup (60°)</button>
-                                <button id="btnOpenRoof" class="btn-action w-full text-xs">Buka (150°)</button>
-                            </div>
-                            <div>
-                                <label for="roofSlider" class="block text-xs font-semibold mb-2 text-gray-500">Sudut Manual: <span id="roofAngleValue" class="font-bold text-gray-800">90°</span></label>
-                                <input id="roofSlider" type="range" min="0" max="180" value="90" class="w-full">
-                            </div>
-                        </div>
-                        <p id="roofStatus" class="text-[10px] mt-3 text-gray-400 font-medium">Saat mode Auto, kontrol manual dinonaktifkan.</p>
-                    </div>
-                </div>
-
-                </main>
-            
-            <main id="grafik" class="tab-content hidden h-full flex flex-col gap-6 overflow-y-auto pb-20">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="clean-card p-4 h-64">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Suhu Udara (°C)</h3>
-                        <div class="h-full pb-5"><canvas id="chartSuhu"></canvas></div>
-                    </div>
-                    <div class="clean-card p-4 h-64">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Kelembapan Udara (%)</h3>
-                        <div class="h-full pb-5"><canvas id="chartKelembapan"></canvas></div>
-                    </div>
-                    <div class="clean-card p-4 h-64 lg:col-span-2">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Intensitas Cahaya (lx)</h3>
-                        <div class="h-full pb-5"><canvas id="chartLight"></canvas></div>
-                    </div>
-                </div>
-
-                <div id="soilCharts" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="clean-card p-4 h-64"><h3 class="text-xs font-bold text-gray-400 uppercase mb-2">pH Larutan</h3><div class="h-full pb-5"><canvas id="chartPH1"></canvas></div></div>
-                    <div class="clean-card p-4 h-64"><h3 class="text-xs font-bold text-gray-400 uppercase mb-2">pH Tanah</h3><div class="h-full pb-5"><canvas id="chartPH2"></canvas></div></div>
-                    <div class="clean-card p-4 h-64"><h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Moisture Tanah 1 (%)</h3><div class="h-full pb-5"><canvas id="chartSoil1"></canvas></div></div>
-                    <div class="clean-card p-4 h-64"><h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Moisture Tanah 2 (%)</h3><div class="h-full pb-5"><canvas id="chartSoil2"></canvas></div></div>
-                </div> 
-            </main>
-
-            <main id="ringkasan" class="tab-content hidden h-full overflow-y-auto pb-20">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-lg font-bold text-gray-800">Tabel Data Sensor (8 Data Terakhir)</h2>
-                    <a href="https://docs.google.com/spreadsheets/d/1B4I2sBcp90mDwFNjqpXEe8hiF6uDGS9eLd2BHHzhS0o/edit?usp=sharing" target="_blank" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-gray-100 hover:bg-gray-200 text-gray-600 transition">
-                        Lihat Data Lengkap
-                    </a>
-                </div>
-                
-                <div class="clean-card overflow-x-auto">
-                    <table class="min-w-full text-sm text-left text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-4 py-3">Waktu</th>
-                                <th scope="col" class="px-4 py-3">pH 1</th>
-                                <th scope="col" class="px-4 py-3">pH 2</th>
-                                <th scope="col" class="px-4 py-3">Suhu (°C)</th>
-                                <th scope="col" class="px-4 py-3">Kelemb. (%)</th>
-                                <th scope="col" class="px-4 py-3">Tanah 1 (%)</th>
-                                <th scope="col" class="px-4 py-3">Tanah 2 (%)</th>
-                                <th scope="col" class="px-4 py-3">Cahaya (lx)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="logTbody" class="divide-y divide-gray-100">
-                            </tbody>
-                    </table>
-                </div>
-            </main>
-
-        </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Container untuk notifikasi -->
     <div id="notificationContainer" class="notification-container"></div>
 
     <script>
-// =======================================================
-    // 1. KONFIGURASI FIREBASE (MENGGANTIKAN API LOKAL)
-    // =======================================================
-    
-    // GANTI URL INI dengan URL Firebase kamu yang diakhiri dengan '/'
-    const FIREBASE_URL = "https://myesp32control-a3605-default-rtdb.asia-southeast1.firebasedatabase.app/";
-    
-    const POLL_INTERVAL = 3000;
+        // === PERBAIKAN URL (Mendukung Asia-Southeast1 Singapura) ===
+        const FB_URL = "https://myesp32control-a3605-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
-    // State Mode
-    let modePump1 = 'Auto';
-    let modePump2 = 'Auto';
-    let modeRoof = 'Auto';
-
-    // State Aktuator
-    let pump1State = 'OFF';
-    let pump2State = 'OFF';
-    let roofAngleState = 90;
-
-    // Helper functions
-    function setText(id, text) {
-        const el = document.getElementById(id);
-        if(el) el.innerText = text;
-    }
-
-    function updateStatusStyle(id, value, range, highText, lowText, normalText) {
-        const el = document.getElementById(id);
-        if (!el || value === null || value === undefined) return;
-        
-        let statusText = normalText;
-        let className = "text-[10px] mt-1 text-gray-400 font-medium"; 
-        
-        if (value < range.min) {
-            statusText = lowText;
-            className = "text-[10px] mt-1 text-blue-600 font-medium"; 
-        } else if (value > range.max) {
-            statusText = highText;
-            className = "text-[10px] mt-1 text-orange-500 font-medium"; 
-        } else {
-            className = "text-[10px] mt-1 text-green-600 font-medium"; 
-        }
-        
-        el.innerText = statusText;
-        el.className = className;
-    }
-    
-    // =======================================================
-    // 2. LOGIKA CLOUD: KIRIM DATA KE FIREBASE
-    // =======================================================
-    
-    async function setMode(target, mode) {
-        try {
-            const res = await fetch(`${FIREBASE_BASE_URL}control/mode/${target}.json`, {
-                method: 'PUT',
-                body: JSON.stringify(mode)
-            });
-            if (!res.ok) throw new Error("Gagal update mode di Cloud");
-            
-            if (target === 'pump1') modePump1 = mode;
-            if (target === 'pump2') modePump2 = mode;
-            if (target === 'roof') modeRoof = mode;
-            
-            updateModeUI();
-            showNotification(`Mode ${target} -> ${mode}`, 'success');
-        } catch (e) {
-            showNotification(`Error: ${e.message}`, 'error');
-        }
-    }
-
-    async function setPumpState(pumpId, pumpNum, stateBool) {
-        const mode = pumpNum === 1 ? modePump1 : modePump2;
-        if (mode !== 'Manual') {
-            showNotification(`Ubah ke Manual untuk kontrol Pompa ${pumpNum}`, 'info');
-            return;
-        }
-
-        const newState = stateBool ? "ON" : "OFF";
-        try {
-            await fetch(`${FIREBASE_BASE_URL}control/pump${pumpNum}.json`, {
-                method: 'PUT',
-                body: JSON.stringify(newState)
-            });
-            
-            if (pumpNum === 1) pump1State = newState;
-            if (pumpNum === 2) pump2State = newState;
-            
-            updatePumpUI(pumpId, newState);
-            showNotification(`Pompa ${pumpNum} ${newState}`, 'success');
-        } catch (e) {
-            showNotification(`Gagal kontrol pompa`, 'error');
-        }
-    }
-
-    async function setServoAngle(angle) {
-        if (modeRoof !== 'Manual') {
-            showNotification('Ubah ke Manual untuk gerakkan atap', 'info');
-            return;
-        }
-
-        try {
-            await fetch(`${FIREBASE_BASE_URL}control/roof_angle.json`, {
-                method: 'PUT',
-                body: JSON.stringify(angle)
-            });
-            roofAngleState = angle;
-            setText('roofAngleValue', angle + '°');
-            setText('roofAngleSummary', angle + '°');
-            showNotification(`Atap set ke ${angle}°`, 'success');
-        } catch (e) {
-            showNotification(`Gagal set atap`, 'error');
-        }
-    }
-
-    // =======================================================
-    // 3. LOGIKA DATA FETCHING (POLLING DARI FIREBASE)
-    // =======================================================
-
-    async function fetchDataAndRender() {
-        try {
-            // Ambil seluruh data dari Firebase
-            const res = await fetch(`${FIREBASE_BASE_URL}.json`);
-            const db = await res.json();
-            
-            if (!db) return;
-
-            // Update Status Koneksi UI
-            document.getElementById('connIndicator').className = 'w-2 h-2 rounded-full bg-green-500 mr-2';
-            document.getElementById('connText').innerText = 'Cloud Online';
-            document.getElementById('connText').className = 'text-xs font-semibold text-green-600';
-
-            // Ambil data monitoring (dikirim oleh ESP32)
-            const data = db.monitoring || {};
-            const ctrl = db.control || {};
-
-            // Update Mode UI dari Cloud
-            if (ctrl.mode) {
-                modePump1 = ctrl.mode.pump1 || modePump1;
-                modePump2 = ctrl.mode.pump2 || modePump2;
-                modeRoof = ctrl.mode.roof || modeRoof;
-                updateModeUI();
-            }
-
-            // Update Aktuator UI dari Cloud
-            pump1State = ctrl.pump1 || pump1State;
-            pump2State = ctrl.pump2 || pump2State;
-            updatePumpUI('pump1', pump1State);
-            updatePumpUI('pump2', pump2State);
-
-            // Parsing Sensor
-            const temp = data.temperature;
-            const hum = data.humidity;
-            const soil1 = data.soil1;
-            const ph1 = data.ph1;
-            const light = data.light || 0;
-
-            const now = new Date();
-            const timeLabel = now.toLocaleTimeString();
-            setText('currentTime', timeLabel);
-
-            // Render ke UI
-            const setVal = (id, val, unit, statusId, range, high, low) => {
-                if (val === undefined || val === null) return;
-                document.getElementById(id).innerText = val + unit;
-                if (statusId) updateStatusStyle(statusId, val, {min: range[0], max: range[1]}, high, low, 'Normal');
-            };
-
-            setVal('ph1Value', ph1, '', 'ph1Status', [6, 7.5], 'Basa', 'Asam');
-            setVal('soil1Value', soil1, '%', 'soil1Status', [30, 70], 'Basah', 'Kering');
-            setVal('tempValue', temp, '°C', 'tempStatus', [18, 30], 'Panas', 'Dingin');
-            setVal('humValue', hum, '%', 'humStatus', [40, 75], 'Tinggi', 'Rendah');
-            setVal('lightValue', light, ' lx', 'lightStatus', [1000, 10000], 'Terang', 'Gelap');
-
-            // Update Charts
-            if (charts.temp) {
-                pushChart(charts.temp, timeLabel, temp);
-                pushChart(charts.hum, timeLabel, hum);
-                pushChart(charts.soil1, timeLabel, soil1);
-                pushChart(charts.ph1, timeLabel, ph1);
-                pushChart(charts.light, timeLabel, light);
-            }
-
-        } catch (error) {
-            console.error("Firebase Error:", error);
-            document.getElementById('connIndicator').className = 'w-2 h-2 rounded-full bg-red-500 mr-2';
-            document.getElementById('connText').innerText = 'Cloud Error';
-        }
-    }
-
-        // =======================================================
-        // 5. LOGIKA CHART
-        // =======================================================
-
-        function createChart(ctx, label) {
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            const textColor = isDarkMode ? '#f3f4f6' : '#374151';
-            const gridColor = isDarkMode ? '#4b5563' : '#f3f4f6';
-            const borderColor = isDarkMode ? '#9ca3af' : '#4b5563';
-            
-            const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
-            if (isDarkMode) {
-                gradient.addColorStop(0, 'rgba(156, 163, 175, 0.1)');
-                gradient.addColorStop(1, 'rgba(156, 163, 175, 0)');
-            } else {
-                gradient.addColorStop(0, 'rgba(55, 65, 81, 0.05)');
-                gradient.addColorStop(1, 'rgba(55, 65, 81, 0)');
-            }
-            
-            return new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{ 
-                        label, 
-                        data: [], 
-                        borderColor: borderColor, 
-                        backgroundColor: gradient, 
-                        borderWidth: 1.5, 
-                        pointRadius: 0, 
-                        fill: true, 
-                        tension: 0.4 
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { 
-                            backgroundColor: isDarkMode ? '#374151' : '#1f2937', 
-                            padding: 8, 
-                            cornerRadius: 6, 
-                            displayColors: false,
-                            titleColor: textColor,
-                            bodyColor: textColor
-                        }
-                    },
-                    scales: {
-                        x: { 
-                            grid: { display: false }, 
-                            ticks: { 
-                                display: false,
-                                color: textColor
-                            } 
-                        },
-                        y: { 
-                            border: { 
-                                dash: [4, 4],
-                                color: gridColor
-                            }, 
-                            grid: { 
-                                color: gridColor 
-                            },
-                            ticks: {
-                                color: textColor
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        let charts = {}; 
-
-        function pushChart(chart, label, value) {
-            if(value === null || value === undefined || isNaN(value) || !chart) return;
-            chart.data.labels.push(label);
-            chart.data.datasets[0].data.push(value);
-            
-            const maxDataPoints = 20; 
-            if(chart.data.labels.length > maxDataPoints) {
-                chart.data.labels.shift();
-                chart.data.datasets[0].data.shift();
-            }
-            chart.update('quiet');
-        }
-
-        // =======================================================
-        // 6. LOGIKA UI UPDATE 
-        // =======================================================
-
-        // Fungsi untuk mengupdate tampilan pompa
-        function updatePumpUI(id, state) {
-            const ind = document.getElementById(id + 'Indicator');
-            const stateText = state === true || state === 'ON' ? 'ON' : 'OFF';
-            
-            // Update Indikator Warna
-            ind.className = stateText === 'ON' ? 
-                "w-3 h-3 rounded-full bg-green-500 shadow-sm" : 
-                "w-3 h-3 rounded-full bg-gray-300";
-
-            // Update Tombol ON/OFF
-            const btnOn = document.getElementById(id+'BtnOn');
-            const btnOff = document.getElementById(id+'BtnOff');
-            if(btnOn && btnOff) {
-                if(stateText === 'ON') {
-                    btnOn.classList.add('active-black');
-                    btnOff.classList.remove('active-black');
-                } else {
-                    btnOff.classList.add('active-black');
-                    btnOn.classList.remove('active-black');
-                }
-            }
-            
-            // Update Ringkasan Pompa dari state global
-            document.getElementById('pumpSummary').textContent = `P1: ${pump1State} • P2: ${pump2State}`;
-        }
-
-        // Fungsi untuk mengupdate tampilan mode kontrol dan menonaktifkan kontrol
-        function updateModeUI() {
-            // Update tombol mode
-            const setBtn = (id, isActive) => {
-                const el = document.getElementById(id);
-                if(el) {
-                    el.classList.toggle('active-black', isActive);
-                    el.classList.toggle('text-gray-500', !isActive);
-                }
-            };
-            
-            setBtn('pump1ModeAuto', modePump1 === 'Auto');
-            setBtn('pump1ModeManual', modePump1 === 'Manual');
-            setBtn('pump2ModeAuto', modePump2 === 'Auto');
-            setBtn('pump2ModeManual', modePump2 === 'Manual');
-            setBtn('roofModeAuto', modeRoof === 'Auto');
-            setBtn('roofModeManual', modeRoof === 'Manual');
-
-            // Nonaktifkan kontrol jika mode Auto
-            const disableControl = (id, isAuto) => {
-                const el = document.getElementById(id);
-                if(el) {
-                    el.disabled = isAuto;
-                    el.classList.toggle('opacity-50', isAuto);
-                    el.classList.toggle('pointer-events-none', isAuto); 
-                }
-            };
-
-            disableControl('pump1BtnOn', modePump1 === 'Auto');
-            disableControl('pump1BtnOff', modePump1 === 'Auto');
-            disableControl('pump2BtnOn', modePump2 === 'Auto');
-            disableControl('pump2BtnOff', modePump2 === 'Auto');
-            
-            const isRoofAuto = modeRoof === 'Auto';
-            disableControl('roofSlider', isRoofAuto);
-            disableControl('btnOpenRoof', isRoofAuto);
-            disableControl('btnCloseRoof', isRoofAuto);
-        }
-
-        // Fungsi untuk navigasi tab
-        document.querySelectorAll('.nav-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
-
-                const targetId = this.getAttribute('data-target');
-                const targetContent = document.getElementById(targetId);
-                if (targetContent) {
-                    targetContent.classList.remove('hidden');
-                }
-            });
-        });
-
-        // =======================================================
-        // 7. DATA FETCHING UTAMA (Polling)
-        // =======================================================
-
-        let isOnline = false;
-
-        async function fetchDataAndRender() {
-            let data, temp, hum, light, ph1, ph2, soil1, soil2;
+        async function fetchData() {
             try {
-                // Inisialisasi chart jika belum ada
-                if(Object.keys(charts).length === 0) {
-                    charts = {
-                        temp: createChart(document.getElementById('chartSuhu'), 'Suhu'),
-                        hum: createChart(document.getElementById('chartKelembapan'), 'Kelembapan'),
-                        light: createChart(document.getElementById('chartLight'), 'Cahaya'),
-                        ph1: createChart(document.getElementById('chartPH1'), 'pH Larutan'),
-                        ph2: createChart(document.getElementById('chartPH2'), 'pH Tanah'),
-                        soil1: createChart(document.getElementById('chartSoil1'), 'Tanah 1'),
-                        soil2: createChart(document.getElementById('chartSoil2'), 'Tanah 2'),
-                    };
-                }
+                const res = await fetch(FB_URL + ".json");
+                const db = await res.json();
+                if(!db) return;
 
-                const res = await fetch(API_URL, {cache: "no-store"});
-                
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                
-                data = await res.json();
+                // Update Status Koneksi
+                document.getElementById('connIndicator').className = "w-2 h-2 rounded-full bg-green-500 mr-2";
+                document.getElementById('connText').innerText = "Online";
 
-                // --- 1. Update Koneksi
-                if (!isOnline) {
-                    isOnline = true;
-                    document.getElementById('connIndicator').className = 'w-2 h-2 rounded-full bg-green-500 mr-2';
-                    document.getElementById('connText').innerText = 'Online';
-                    document.getElementById('connText').className = 'text-xs font-semibold text-green-600';
-                }
+                // Mapping Monitoring
+                const m = db.monitoring || {};
+                document.getElementById('tempValue').innerText = (m.temperature || 0).toFixed(1) + "°C";
+                document.getElementById('soil1Value').innerText = (m.soil1 || 0) + "%";
+                document.getElementById('ph1Value').innerText = (m.ph1 || 0).toFixed(1);
+                document.getElementById('humValue').innerText = (m.humidity || 0) + "%";
 
-                // --- 2. Update Mode dari Server (PENTING!)
-                if (data.mode) {
-                    // Update state lokal dengan data dari server
-                    modePump1 = data.mode.pump1 || modePump1;
-                    modePump2 = data.mode.pump2 || modePump2;
-                    modeRoof = data.mode.roof || modeRoof;
-                    
-                    // Update UI mode
-                    updateModeUI();
-                }
+                // Mapping Pump State UI
+                const p1 = db.control ? db.control.pump1 : "OFF";
+                document.getElementById('p1On').classList.toggle('active-black', p1 === "ON");
+                document.getElementById('p1Off').classList.toggle('active-black', p1 === "OFF");
 
-                // Normalisasi dan Parsing Data Sensor
-                ph1 = (typeof data.ph1 !== 'undefined') ? parseFloat(data.ph1) : null;
-                ph2 = (typeof data.ph2 !== 'undefined') ? parseFloat(data.ph2) : null;
-                soil1 = (typeof data.soil1 !== 'undefined') ? parseFloat(data.soil1) : null;
-                soil2 = (typeof data.soil2 !== 'undefined') ? parseFloat(data.soil2) : null;
-                temp = (typeof data.temperature !== 'undefined') ? parseFloat(data.temperature) : null;
-                hum = (typeof data.humidity !== 'undefined') ? parseFloat(data.humidity) : null;
-                light = (typeof data.light !== 'undefined') ? parseFloat(data.light) : null;
-                
-                // Time Label
-                const now = new Date();
-                const hh = String(now.getHours()).padStart(2,'0');
-                const mm = String(now.getMinutes()).padStart(2,'0');
-                const ss = String(now.getSeconds()).padStart(2,'0');
-                const timeLabel = `${hh}:${mm}:${ss}`;
-                setText('currentTime', timeLabel);
-
-                // --- 3. Update Nilai Sensor & Status
-                const setVal = (id, val, unit, statusId, normalRange, highTxt, lowTxt) => {
-                    if (val === null || val === undefined || isNaN(val)) return;
-                    const displayVal = id.includes('ph') || id.includes('temp') ? val.toFixed(1) : Math.round(val);
-                    document.getElementById(id).innerText = displayVal + unit;
-                    
-                    if (statusId) {
-                        updateStatusStyle(statusId, val, {min: normalRange[0], max: normalRange[1]}, highTxt, lowTxt, 'Normal');
-                    }
-                };
-
-                setVal('ph1Value', ph1, '', 'ph1Status', [6, 7.5], 'Basa', 'Asam'); 
-                setVal('ph2Value', ph2, '', 'ph2Status', [6, 7.5], 'Basa', 'Asam'); 
-                setVal('soil1Value', soil1, '%', 'soil1Status', [30, 70], 'Basah', 'Kering'); 
-                setVal('soil2Value', soil2, '%', 'soil2Status', [30, 70], 'Basah', 'Kering');
-                setVal('tempValue', temp, '°C', 'tempStatus', [18, 30], 'Panas', 'Dingin'); 
-                setVal('humValue', hum, '%', 'humStatus', [40, 75], 'Tinggi', 'Rendah'); 
-                setVal('lightValue', light, ' lx', 'lightStatus', [1000, 10000], 'Terang', 'Gelap'); 
-
-                // --- 4. Update Status Perangkat dari Server
-                if (data.pump1 !== undefined) {
-                    pump1State = data.pump1;
-                    updatePumpUI('pump1', pump1State);
-                }
-                if (data.pump2 !== undefined) {
-                    pump2State = data.pump2;
-                    updatePumpUI('pump2', pump2State);
-                }
-                
-                // Update status servo dari server
-                if (data.roof_angle !== undefined) {
-                    roofAngleState = data.roof_angle;
-                    setText('roofAngleValue', roofAngleState + '°');
-                    document.getElementById('roofSlider').value = roofAngleState;
-                    setText('roofAngleSummary', roofAngleState + '°');
-                }
-                
-                // Update ringkasan
-                setText('lightSummary', light !== null ? Math.round(light) + ' lx' : '—'); 
-                setText('systemStatus', `✅ Beroperasi Normal. Mode: P1:${modePump1} P2:${modePump2} Atap:${modeRoof}`);
-
-                // --- 5. Update Grafik
-                pushChart(charts.temp, timeLabel, temp);
-                pushChart(charts.hum, timeLabel, hum);
-                pushChart(charts.light, timeLabel, light);
-                pushChart(charts.ph1, timeLabel, ph1);
-                pushChart(charts.ph2, timeLabel, ph2);
-                pushChart(charts.soil1, timeLabel, soil1);
-                pushChart(charts.soil2, timeLabel, soil2);
-
-                // --- 6. Update Log Tabel
-                const tbody = document.getElementById('logTbody');
-                if (tbody) { 
-                    const row = `<tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td class="px-4 py-3 text-xs text-gray-500">${timeLabel}</td>
-                        <td class="px-4 py-3">${ph1 !== null ? ph1.toFixed(2) : '-'}</td>
-                        <td class="px-4 py-3">${ph2 !== null ? ph2.toFixed(2) : '-'}</td>
-                        <td class="px-4 py-3">${temp !== null ? temp.toFixed(1) : '-'}</td>
-                        <td class="px-4 py-3">${hum !== null ? Math.round(hum) : '-'}</td>
-                        <td class="px-4 py-3">${soil1 !== null ? Math.round(soil1) : '-'}</td>
-                        <td class="px-4 py-3">${soil2 !== null ? Math.round(soil2) : '-'}</td>
-                        <td class="px-4 py-3">${light !== null ? Math.round(light) : '-'}</td>
-                    </tr>`;
-                    tbody.insertAdjacentHTML('afterbegin', row);
-                    if(tbody.children.length > 8) tbody.lastElementChild.remove();
-                }
-
-                // === 7. Opsional: Kirim data ke Google Spreadsheet ===
-                if (GSHEET_URL) {
-                    try {
-                        const sendData = {
-                            ph1, ph2, temperature: temp, humidity: hum,
-                            soil1, soil2, light, roof_angle: roofAngleState,
-                            pump1: pump1State, pump2: pump2State,
-                            timestamp: new Date().toISOString()
-                        };
-
-                        await fetch(GSHEET_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(sendData)
-                        });
-
-                    } catch (e) {
-                        console.warn("⚠ Gagal kirim ke Spreadsheet:", e);
-                    }
-                }
-
-            } catch (error) {
-                console.error("Gagal mengambil data:", error);
-                if (isOnline) {
-                    isOnline = false;
-                    document.getElementById('connIndicator').className = 'w-2 h-2 rounded-full bg-red-500 mr-2';
-                    document.getElementById('connText').innerText = 'Offline';
-                    document.getElementById('connText').className = 'text-xs font-semibold text-red-600';
-                    setText('systemStatus', '❌ Terputus (Cek koneksi API)');
-                }
+            } catch (e) {
+                document.getElementById('connIndicator').className = "w-2 h-2 rounded-full bg-red-500 mr-2";
+                document.getElementById('connText').innerText = "Offline";
             }
         }
 
-        // =======================================================
-        // 8. EVENT LISTENERS & INICIALISASI
-        // =======================================================
-
-        // --- Toggle Sidebar
-        document.getElementById('burgerBtn').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-        });
-
-        // --- Dark Mode Toggle
-        document.getElementById('darkModeToggle').addEventListener('click', function() {
-            document.body.classList.toggle('dark-mode');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
-            
-            // Reset charts untuk dark mode
-            Object.keys(charts).forEach(key => {
-                charts[key].destroy();
+        async function setPumpState(num, state) {
+            await fetch(`${FB_URL}control/pump${num}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(state)
             });
-            charts = {};
-        });
+            showNotify(`Pompa ${num} diubah ke ${state}`, 'bg-green-500');
+        }
 
-        // --- TOMBOL MODE (DENGAN KIRIM KE SERVER)
-        document.getElementById('pump1ModeAuto').addEventListener('click', async () => { 
-            await setMode('pump1', 'Auto');
-        });
+        async function setServo(val) {
+            document.getElementById('roofLabel').innerText = val + "°";
+            await fetch(`${FB_URL}control/roof_angle.json`, {
+                method: 'PUT',
+                body: JSON.stringify(parseInt(val))
+            });
+        }
 
-        document.getElementById('pump1ModeManual').addEventListener('click', async () => { 
-            await setMode('pump1', 'Manual');
-        });
+        function showNotify(msg, color) {
+            const container = document.getElementById('notificationContainer');
+            const div = document.createElement('div');
+            div.className = `notification show ${color}`;
+            div.innerText = msg;
+            container.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
 
-        document.getElementById('pump2ModeAuto').addEventListener('click', async () => { 
-            await setMode('pump2', 'Auto');
-        });
-
-        document.getElementById('pump2ModeManual').addEventListener('click', async () => { 
-            await setMode('pump2', 'Manual');
-        });
-
-        document.getElementById('roofModeAuto').addEventListener('click', async () => { 
-            await setMode('roof', 'Auto');
-        });
-
-        document.getElementById('roofModeManual').addEventListener('click', async () => { 
-            await setMode('roof', 'Manual');
-        });
-
-        // --- TOMBOL KONTROL POMPA
-        document.getElementById('pump1BtnOn').addEventListener('click', () => setPumpState('pump1', 1, true));
-        document.getElementById('pump1BtnOff').addEventListener('click', () => setPumpState('pump1', 1, false));
-        document.getElementById('pump2BtnOn').addEventListener('click', () => setPumpState('pump2', 2, true));
-        document.getElementById('pump2BtnOff').addEventListener('click', () => setPumpState('pump2', 2, false));
-
-        // --- KONTROL SERVO (ROOF) 
-        const rSlider = document.getElementById('roofSlider');
-        rSlider.oninput = () => setText('roofAngleValue', rSlider.value + '°');
-        rSlider.onchange = () => { 
-            if(modeRoof === 'Manual') setServoAngle(parseInt(rSlider.value));
-        };
-
-        document.getElementById('btnOpenRoof').onclick = () => { 
-            if(modeRoof === 'Manual') { 
-                const angle = 150;
-                rSlider.value = angle; 
-                setText('roofAngleValue', angle + '°'); 
-                setServoAngle(angle); 
-            } 
-        };
-        document.getElementById('btnCloseRoof').onclick = () => { 
-            if(modeRoof === 'Manual') { 
-                const angle = 60;
-                rSlider.value = angle; 
-                setText('roofAngleValue', angle + '°'); 
-                setServoAngle(angle); 
-            } 
-        };
-
-        // --- INISIALISASI
-        window.onload = function() {
-            const savedDarkMode = localStorage.getItem('darkMode');
-            if (savedDarkMode === 'enabled') {
-                document.body.classList.add('dark-mode');
-            }
-            
-            updateModeUI(); 
-
-            // Polling data pertama kali
-            fetchDataAndRender(); 
-            
-            // Set interval polling
-            setInterval(fetchDataAndRender, POLL_INTERVAL); 
-        };
-
+        document.getElementById('darkModeToggle').onclick = () => document.body.classList.toggle('dark-mode');
+        
+        setInterval(fetchData, 3000);
+        fetchData();
     </script>
 </body>
 </html>
-
-
-
-
