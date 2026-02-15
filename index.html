@@ -759,10 +759,22 @@ document.getElementById('btnOpenRoof').onclick = ()=>setServoAngle(150);
 document.getElementById('btnCloseRoof').onclick= ()=>setServoAngle(60);
 document.getElementById('roofSlider').oninput = e=>setServoAngle(parseInt(e.target.value));
 
+// =======================================================
+// SIDEBAR HAMBURGER
+// =======================================================
+const sidebar = document.getElementById('sidebar');
+const burgerBtn = document.getElementById('burgerBtn');
+
+burgerBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+});
+
+
 </script>
 
 
 </body>
 </html>
+
 
 
