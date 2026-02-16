@@ -783,12 +783,35 @@ document.getElementById('btnOpenRoof').onclick = ()=>setServoAngle(150);
 document.getElementById('btnCloseRoof').onclick= ()=>setServoAngle(60);
 document.getElementById('roofSlider').oninput = e=>setServoAngle(parseInt(e.target.value));
 
+    // =======================================================
+// NAVIGASI MENU
+// =======================================================
+
+// ambil semua tombol menu
+const menuLinks = document.querySelectorAll('[data-page]');
+const pages = document.querySelectorAll('.page');
+
+menuLinks.forEach(link=>{
+    link.addEventListener('click', ()=>{
+
+        const target = link.getAttribute('data-page');
+
+        // sembunyikan semua halaman
+        pages.forEach(p=>p.classList.add('hidden'));
+
+        // tampilkan halaman tujuan
+        const active = document.getElementById(target);
+        if(active) active.classList.remove('hidden');
+    });
+});
+
 </script>
 
 
 
 </body>
 </html>
+
 
 
 
