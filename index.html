@@ -786,23 +786,33 @@ window.addEventListener('load',()=>{
 });
 
 // =======================================================
-// BUTTON EVENT
 // =======================================================
-document.getElementById('pump1BtnOn').onclick = ()=>setPumpState(1,'ON');
-document.getElementById('pump1BtnOff').onclick= ()=>setPumpState(1,'OFF');
-document.getElementById('pump2BtnOn').onclick = ()=>setPumpState(2,'ON');
-document.getElementById('pump2BtnOff').onclick= ()=>setPumpState(2,'OFF');
+// BUTTON EVENT (ANTI ERROR)
+// =======================================================
+function safeClick(id, fn){
+    const el = document.getElementById(id);
+    if(el) el.onclick = fn;
+}
 
-document.getElementById('pump1ModeAuto').onclick = ()=>setMode('pump1','Auto');
-document.getElementById('pump1ModeManual').onclick = ()=>setMode('pump1','Manual');
-document.getElementById('pump2ModeAuto').onclick = ()=>setMode('pump2','Auto');
-document.getElementById('pump2ModeManual').onclick = ()=>setMode('pump2','Manual');
-document.getElementById('roofModeAuto').onclick = ()=>setMode('roof','Auto');
-document.getElementById('roofModeManual').onclick = ()=>setMode('roof','Manual');
+safeClick('pump1BtnOn', ()=>setPumpState(1,'ON'));
+safeClick('pump1BtnOff',()=>setPumpState(1,'OFF'));
+safeClick('pump2BtnOn', ()=>setPumpState(2,'ON'));
+safeClick('pump2BtnOff',()=>setPumpState(2,'OFF'));
 
-document.getElementById('btnOpenRoof').onclick = ()=>setServoAngle(150);
-document.getElementById('btnCloseRoof').onclick= ()=>setServoAngle(60);
-document.getElementById('roofSlider').oninput = e=>setServoAngle(parseInt(e.target.value));
+safeClick('pump1ModeAuto', ()=>setMode('pump1','Auto'));
+safeClick('pump1ModeManual', ()=>setMode('pump1','Manual'));
+safeClick('pump2ModeAuto', ()=>setMode('pump2','Auto'));
+safeClick('pump2ModeManual', ()=>setMode('pump2','Manual'));
+safeClick('roofModeAuto', ()=>setMode('roof','Auto'));
+safeClick('roofModeManual', ()=>setMode('roof','Manual'));
+
+safeClick('btnOpenRoof', ()=>setServoAngle(150));
+safeClick('btnCloseRoof',()=>setServoAngle(60));
+
+const slider = document.getElementById('roofSlider');
+if(slider){
+    slider.oninput = e=>setServoAngle(parseInt(e.target.value));
+}
 
 </script>
 
@@ -811,6 +821,7 @@ document.getElementById('roofSlider').oninput = e=>setServoAngle(parseInt(e.targ
 
 </body>
 </html>
+
 
 
 
