@@ -709,6 +709,37 @@ function updateModeUI(){
 }
 
 // =======================================================
+// RENDER LOG TABLE
+// =======================================================
+function renderLogs(logs){
+    const tbody = document.getElementById('logTbody');
+    if(!tbody) return;
+
+    tbody.innerHTML = '';
+
+    if(!logs) return;
+
+    const arr = Object.values(logs).slice(-8).reverse();
+
+    arr.forEach(d=>{
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+            <td class="px-4 py-3">${d.time || '-'}</td>
+            <td class="px-4 py-3">${d.ph1 ?? '-'}</td>
+            <td class="px-4 py-3">${d.ph2 ?? '-'}</td>
+            <td class="px-4 py-3">${d.temperature ?? '-'}</td>
+            <td class="px-4 py-3">${d.humidity ?? '-'}</td>
+            <td class="px-4 py-3">${d.soil1 ?? '-'}</td>
+            <td class="px-4 py-3">${d.soil2 ?? '-'}</td>
+            <td class="px-4 py-3">${d.light ?? '-'}</td>
+        `;
+
+        tbody.appendChild(tr);
+    });
+}
+
+// =======================================================
 // FETCH FIREBASE
 // =======================================================
 async function fetchDataAndRender(){
@@ -722,6 +753,9 @@ async function fetchDataAndRender(){
 
         const m = db.monitoring || {};
         const c = db.control || {};
+        
+        renderLogs(m.logs);
+
 
         if(c.mode){
             modePump1 = c.mode.pump1 || modePump1;
@@ -782,7 +816,9 @@ window.addEventListener('load',()=>{
         soil2: createChart(document.getElementById('chartSoil2'),'Soil2','#ec4899'),
     };
 
-    setInterval(fetchDataAndRender,POLL_INTERVAL);
+fetchDataAndRender();
+setInterval(fetchDataAndRender,POLL_INTERVAL);
+
 });
 
 // =======================================================
@@ -821,6 +857,7 @@ if(slider){
 
 </body>
 </html>
+
 
 
 
