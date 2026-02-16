@@ -556,6 +556,33 @@ if(burgerBtn){
 }
 
 // =======================================================
+// NAVIGASI MENU (FIX TOTAL)
+// =======================================================
+const navButtons = document.querySelectorAll('.nav-btn');
+const tabs = document.querySelectorAll('.tab-content');
+
+navButtons.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+
+        const target = btn.getAttribute('data-target');
+
+        tabs.forEach(t=>t.classList.add('hidden'));
+        const active = document.getElementById(target);
+        if(active) active.classList.remove('hidden');
+
+        navButtons.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // resize chart saat halaman grafik dibuka
+        if(target === 'grafik'){
+            setTimeout(()=>{
+                Object.values(charts).forEach(c=>c.resize());
+            },200);
+        }
+    });
+});
+
+// =======================================================
 // FIREBASE WRITE
 // =======================================================
 async function setMode(target, mode){
@@ -606,7 +633,7 @@ async function setServoAngle(angle){
 }
 
 // =======================================================
-// CHART STYLE
+// CHART
 // =======================================================
 function createChart(canvas,label,color){
     return new Chart(canvas,{
@@ -629,10 +656,7 @@ function createChart(canvas,label,color){
             maintainAspectRatio:false,
             plugins:{legend:{display:false}},
             interaction:{intersect:false,mode:'index'},
-            scales:{
-                x:{display:false},
-                y:{ticks:{font:{size:10}}}
-            }
+            scales:{x:{display:false}}
         }
     });
 }
@@ -685,7 +709,7 @@ function updateModeUI(){
 }
 
 // =======================================================
-// FETCH DATA
+// FETCH FIREBASE
 // =======================================================
 async function fetchDataAndRender(){
     try{
@@ -699,7 +723,6 @@ async function fetchDataAndRender(){
         const m = db.monitoring || {};
         const c = db.control || {};
 
-        // ===== MODE =====
         if(c.mode){
             modePump1 = c.mode.pump1 || modePump1;
             modePump2 = c.mode.pump2 || modePump2;
@@ -707,12 +730,10 @@ async function fetchDataAndRender(){
             updateModeUI();
         }
 
-        // ===== AKTUATOR =====
         pump1State = c.pump1 || pump1State;
         pump2State = c.pump2 || pump2State;
         updatePumpUI();
 
-        // ===== SENSOR =====
         const temp = parseFloat(m.temperature);
         const hum  = parseFloat(m.humidity);
         const soil1= parseFloat(m.soil1);
@@ -783,29 +804,8 @@ document.getElementById('btnOpenRoof').onclick = ()=>setServoAngle(150);
 document.getElementById('btnCloseRoof').onclick= ()=>setServoAngle(60);
 document.getElementById('roofSlider').oninput = e=>setServoAngle(parseInt(e.target.value));
 
-    // =======================================================
-// NAVIGASI MENU
-// =======================================================
-
-// ambil semua tombol menu
-const menuLinks = document.querySelectorAll('[data-page]');
-const pages = document.querySelectorAll('.page');
-
-menuLinks.forEach(link=>{
-    link.addEventListener('click', ()=>{
-
-        const target = link.getAttribute('data-page');
-
-        // sembunyikan semua halaman
-        pages.forEach(p=>p.classList.add('hidden'));
-
-        // tampilkan halaman tujuan
-        const active = document.getElementById(target);
-        if(active) active.classList.remove('hidden');
-    });
-});
-
 </script>
+
 
 
 
