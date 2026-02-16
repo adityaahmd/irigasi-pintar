@@ -1,940 +1,211 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Sistem Irigasi - Minimalist White (API Driven)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        :root {
-            --font-main: 'Inter', sans-serif;
-            --sidebar-width: 240px;
-            --sidebar-mini: 70px;
-        }
-        body {
-            font-family: var(--font-main);
-            background-color: #f3f4f6;
-            color: #374151;
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sistem Irigasi Pintar</title>
 
-        /* --- Dark Mode Variables --- */
-        body.dark-mode {
-            background-color: #1f2937;
-            color: #f3f4f6;
-        }
-        body.dark{
-    background:#0f172a;
-    color:#e5e7eb;
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+    --bg-light:#f3f4f6;
+    --bg-dark:#0b1220;
+    --card-dark:#111827;
+    --border-dark:#1f2937;
+    --text-dark:#f3f4f6;
 }
 
-body.dark .card{
-    background:#1e293b !important;
-    border-color:#334155 !important;
+body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg-light);
+    color:#374151;
 }
 
-body.dark table{
-    background:#1e293b;
+/* ================= DARK MODE ================= */
+body.dark{
+    background:var(--bg-dark);
+    color:var(--text-dark);
 }
 
-body.dark thead{
-    background:#0f172a;
+body.dark header,
+body.dark aside{
+    background:#0f172a !important;
+    border-color:var(--border-dark)!important;
+}
+
+body.dark .clean-card{
+    background:var(--card-dark)!important;
+    border:1px solid var(--border-dark)!important;
+}
+
+body.dark .text-gray-800,
+body.dark .text-gray-700{
+    color:#f3f4f6!important;
+}
+
+body.dark .text-gray-500,
+body.dark .text-gray-400{
+    color:#9ca3af!important;
+}
+
+body.dark .bg-gray-50,
+body.dark .bg-gray-100{
+    background:#1f2937!important;
 }
 
 body.dark .nav-btn{
-    color:#cbd5e1;
+    color:#cbd5f5;
 }
-
 body.dark .nav-btn.active{
     background:#2563eb;
     color:white;
 }
 
+body.dark table{
+    background:var(--card-dark);
+    color:#e5e7eb;
+}
+body.dark thead{
+    background:#0f172a;
+}
 
-        /* --- Sidebar Logic --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        
-        .sidebar.collapsed {
-            width: var(--sidebar-mini);
-        }
-        
-        .sidebar.collapsed .logo-text, 
-        .sidebar.collapsed .nav-label,
-        .sidebar.collapsed .footer-text {
-            opacity: 0;
-            pointer-events: none;
-            display: none;
-        }
-        
-        .sidebar.collapsed .nav-btn {
-            justify-content: center;
-            padding-left: 0;
-            padding-right: 0;
-        }
-        .sidebar.collapsed .logo-container {
-            justify-content: center;
-            padding-left: 0;
-            padding-right: 0;
-        }
+/* ================= UI ================= */
+.clean-card{
+    background:white;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+}
 
-        /* --- UI Components --- */
-        .clean-card {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
-        }
+.nav-btn{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 16px;
+    border-radius:8px;
+    color:#6b7280;
+}
+.nav-btn.active{
+    background:#e5e7eb;
+    color:#111827;
+    font-weight:600;
+}
+.nav-btn:hover{background:#e5e7eb;}
 
-        body.dark-mode .clean-card {
-            background: #374151;
-            border: 1px solid #4b5563;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
-        }
-
-        .nav-btn {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            margin-bottom: 4px;
-            border-radius: 8px;
-            font-weight: 500;
-            color: #6b7280;
-            transition: all 0.2s;
-        }
-        .nav-btn:hover { background-color: #f9fafb; color: #111827; }
-        .nav-btn.active { background-color: #f3f4f6; color: #111827; font-weight: 600; }
-
-        body.dark-mode .nav-btn {
-            color: #9ca3af;
-        }
-        body.dark-mode .nav-btn:hover { background-color: #374151; color: #f3f4f6; }
-        body.dark-mode .nav-btn.active { background-color: #4b5563; color: #f3f4f6; font-weight: 600; }
-
-        /* Tombol Slider & Aksi */
-        .btn-action {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.2s;
-            border: 1px solid #e5e7eb;
-            background: white;
-            color: #374151;
-        }
-        .btn-action:hover { border-color: #d1d5db; background: #f9fafb; }
-        .btn-action.active-black { background: #1f2937; color: white; border-color: #1f2937; }
-        .btn-action.pointer-events-none { cursor: not-allowed; }
-        
-        body.dark-mode .btn-action {
-            background: #374151;
-            color: #f3f4f6;
-            border-color: #4b5563;
-        }
-        body.dark-mode .btn-action:hover { border-color: #6b7280; background: #4b5563; }
-        body.dark-mode .btn-action.active-black { background: #d1d5db; color: #1f2937; border-color: #d1d5db; }
-        
-        /* Slider Range */
-        input[type=range] { -webkit-appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
-            background: #1f2937; margin-top: -6px; cursor: pointer;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px;
-        }
-        
-        body.dark-mode input[type=range]::-webkit-slider-thumb {
-            background: #d1d5db;
-        }
-        body.dark-mode input[type=range]::-webkit-slider-runnable-track {
-            background: #4b5563;
-        }
-        
-        /* Scrollbar Halus */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-
-        body.dark-mode ::-webkit-scrollbar-thumb { background: #4b5563; }
-
-        /* Status Colors */
-        .bg-green-500 { background-color: #10b981; }
-        .bg-orange-500 { background-color: #f97316; }
-        .bg-red-500 { background-color: #ef4444; }
-        .bg-gray-500 { background-color: #6b7280; }
-        .text-green-600 { color: #059669; }
-        .text-orange-500 { color: #f97316; }
-        .text-blue-600 { color: #2563eb; }
-        .text-red-600 { color: #dc2626; }
-        .text-gray-600 { color: #4b5563; }
-        .opacity-50 { opacity: 0.5; }
-
-        body.dark-mode .text-gray-600 { color: #d1d5db; }
-        body.dark-mode .text-gray-800 { color: #f3f4f6; }
-        body.dark-mode .text-gray-700 { color: #f3f4f6; }
-        body.dark-mode .text-gray-500 { color: #d1d5db; }
-        body.dark-mode .text-gray-400 { color: #9ca3af; }
-        body.dark-mode .text-green-600 { color: #34d399; }
-        body.dark-mode .text-orange-500 { color: #fb923c; }
-        body.dark-mode .text-blue-600 { color: #60a5fa; }
-        body.dark-mode .text-red-600 { color: #f87171; }
-
-        body.dark-mode .sidebar {
-            background-color: #111827;
-            border-color: #374151;
-        }
-
-        body.dark-mode header {
-            background-color: rgba(17, 24, 39, 0.9);
-            border-color: #374151;
-        }
-
-        body.dark-mode table {
-            color: #d1d5db;
-        }
-        body.dark-mode thead {
-            background-color: #374151;
-            color: #f3f4f6;
-        }
-        body.dark-mode tbody tr {
-            border-color: #374151;
-        }
-        body.dark-mode tbody tr:hover {
-            background-color: #374151;
-        }
-
-        body.dark-mode .bg-gray-50 {
-            background-color: #374151;
-        }
-        body.dark-mode .bg-gray-100 {
-            background-color: #4b5563;
-        }
-        body.dark-mode .border-gray-100 {
-            border-color: #4b5563;
-        }
-        body.dark-mode .border-gray-200 {
-            border-color: #374151;
-        }
-        body.dark-mode .hover\:bg-gray-100:hover {
-            background-color: #4b5563;
-        }
-        body.dark-mode .hover\:bg-gray-50:hover {
-            background-color: #374151;
-        }
-
-        /* --- Notifikasi Toast --- */
-        .notification-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .notification {
-            padding: 12px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateX(400px);
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            opacity: 0;
-        }
-        .notification.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        .notification.success { background-color: #10b981; }
-        .notification.error { background-color: #ef4444; }
-        .notification.info { background-color: #3b82f6; }
-    </style>
+.btn-action{
+    padding:8px 16px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:600;
+    background:#e5e7eb;
+}
+.btn-action.active-black{
+    background:#111827;
+    color:white;
+}
+</style>
 </head>
+
 <body class="h-screen flex overflow-hidden">
 
-    <aside id="sidebar" class="sidebar bg-white border-r border-gray-200 flex flex-col z-20">
-        <div class="h-16 flex items-center px-6 border-b border-gray-100 logo-container transition-all">
-            <div class="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
-                S
-            </div>
-            <span class="logo-text ml-3 font-bold text-lg tracking-tight text-gray-800">SIP <span class="font-normal text-gray-400">V3</span></span>
-        </div>
+<!-- ================= SIDEBAR ================= -->
+<aside class="w-60 bg-white border-r border-gray-200 flex flex-col">
+    <div class="h-16 flex items-center px-6 border-b font-bold">SIP V3</div>
+    <nav class="flex-1 p-3 space-y-2">
+        <button class="nav-btn active" data-target="dashboard">Dashboard</button>
+        <button class="nav-btn" data-target="grafik">Grafik Data</button>
+        <button class="nav-btn" data-target="ringkasan">Riwayat Log</button>
+    </nav>
+    <div class="p-3 text-xs text-gray-400">&copy; 2025</div>
+</aside>
 
-        <nav class="flex-1 px-3 py-6 space-y-1">
-            <button class="nav-btn w-full active" data-target="dashboard" title="Dashboard">
-                <svg class="w-5 h-5 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                <span class="nav-label ml-3">Dashboard</span>
-            </button>
-            <button class="nav-btn w-full" data-target="grafik" title="Grafik & Analitik">
-                <svg class="w-5 h-5 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4 2 2M3 12h18M5 15h14M5 9h14"/></svg>
-                <span class="nav-label ml-3">Grafik Data</span>
-            </button>
-            <button class="nav-btn w-full" data-target="ringkasan" title="Riwayat Data">
-                <svg class="w-5 h-5 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span class="nav-label ml-3">Riwayat Log</span>
-            </button>
-        </nav>
-        
-        <div class="p-4 border-t border-gray-100 text-xs text-gray-400 text-center footer-text">
-            &copy; 2025 Smart System
-        </div>
-    </aside>
+<!-- ================= MAIN ================= -->
+<div class="flex-1 flex flex-col">
 
-    <div class="flex-1 flex flex-col h-full relative min-w-0">
-        
-        <header class="h-16 bg-white/90 backdrop-blur border-b border-gray-200 flex justify-between items-center px-4 sticky top-0 z-10">
-            <div class="flex items-center gap-4">
-                <button id="burgerBtn" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-                <h1 class="text-base md:text-lg font-bold text-gray-800 truncate">Sistem Irigasi Pintar</h1>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <div class="hidden sm:block text-right">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Waktu Server</p>
-                    <p id="currentTime" class="text-sm font-mono font-medium text-gray-700">--:--:--</p>
-                </div>
-                <div class="flex items-center bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-                    <div id="connIndicator" class="w-2 h-2 rounded-full bg-gray-300 mr-2"></div>
-                    <span id="connText" class="text-xs font-semibold text-gray-500">Offline</span>
-                </div>
-                <!-- Dark Mode Toggle -->
-                <button id="darkModeToggle" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors focus:outline-none">
-                    <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                    </svg>
-                    <svg class="w-6 h-6 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                    </svg>
-                </button>
-                <button id="themeToggle" class="px-3 py-1 rounded-lg bg-gray-200 text-xs font-semibold">
-    🌙
-</button>
+<header class="h-16 bg-white border-b flex justify-between items-center px-4">
+    <h1 class="font-bold">Sistem Irigasi Pintar</h1>
+    <button id="themeToggle" class="px-3 py-1 rounded bg-gray-200 text-sm">🌙</button>
+</header>
 
-            </div>
-        </header>
+<div class="flex-1 p-4 overflow-y-auto">
 
-        <div id="contentArea" class="flex-1 overflow-hidden relative p-4 md:p-6">
-            
-            <main id="dashboard" class="tab-content h-full flex flex-col gap-6 overflow-y-auto pb-20">
-                
-                <div class="clean-card px-5 py-4 flex items-center justify-between flex-wrap gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-600">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                        <div>
-                            <p class="text-xs font-medium text-gray-400 uppercase">Status Operasional</p>
-                            <p id="systemStatus" class="text-sm font-semibold text-gray-700">Menunggu koneksi...</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4 md:gap-8 text-sm">
-                        <div><span class="block text-[10px] text-gray-400 uppercase font-bold">Pompa</span><span id="pumpSummary" class="font-bold text-gray-800">-/—</span></div>
-                        <div><span class="block text-[10px] text-gray-400 uppercase font-bold">Atap</span><span id="roofAngleSummary" class="font-bold text-gray-800">—</span></div>
-                        <div><span class="block text-[10px] text-gray-400 uppercase font-bold">Cahaya</span><span id="lightSummary" class="font-bold text-gray-800">—</span></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">pH Larutan (pH1)</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">pH</span>
-                        </div>
-                        <p id="ph1Value" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="ph1Status" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Tanah 1</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">%</span>
-                        </div>
-                        <p id="soil1Value" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="soil1Status" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Suhu Udara</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">°C</span>
-                        </div>
-                        <p id="tempValue" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="tempStatus" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Kelembapan Udara</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">%</span>
-                        </div>
-                        <p id="humValue" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="humStatus" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">pH Tanah 2</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">pH</span>
-                        </div>
-                        <p id="ph2Value" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="ph2Status" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Tanah 2</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">%</span>
-                        </div>
-                        <p id="soil2Value" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="soil2Status" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 hover:shadow-md transition-all">
-                        <div class="flex justify-between items-start mb-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Intensitas Cahaya</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">lx</span>
-                        </div>
-                        <p id="lightValue" class="text-2xl font-bold text-gray-800">-</p>
-                        <p id="lightStatus" class="text-[10px] mt-1 text-gray-400 font-medium">Menunggu data...</p>
-                    </div>
-                    <div class="clean-card p-4 flex items-center justify-center border-dashed bg-gray-50">
-                        <span class="text-[10px] font-bold text-gray-300 uppercase">Cadangan</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="clean-card p-5 flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-gray-800 uppercase">Pompa Zona 1</h3>
-                            <div class="flex bg-gray-100 p-1 rounded-lg">
-                                <button id="pump1ModeAuto" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all active-black">Auto</button>
-                                <button id="pump1ModeManual" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all text-gray-500">Manual</button>
-                            </div>
-                        </div>
-                        <div class="mt-auto flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-100">
-                            <div class="flex items-center gap-2">
-                                <div id="pump1Indicator" class="w-3 h-3 rounded-full bg-gray-300 transition-colors"></div>
-                                <span class="text-xs font-medium text-gray-500">Power</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="pump1BtnOn" class="btn-action text-xs">ON</button>
-                                <button id="pump1BtnOff" class="btn-action text-xs active-black">OFF</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="clean-card p-5 flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-gray-800 uppercase">Pompa Zona 2 (Relay 2)</h3>
-                            <div class="flex bg-gray-100 p-1 rounded-lg">
-                                <button id="pump2ModeAuto" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all active-black">Auto</button>
-                                <button id="pump2ModeManual" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all text-gray-500">Manual</button>
-                            </div>
-                        </div>
-                        <div class="mt-auto flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-100">
-                            <div class="flex items-center gap-2">
-                                <div id="pump2Indicator" class="w-3 h-3 rounded-full bg-gray-300 transition-colors"></div>
-                                <span class="text-xs font-medium text-gray-500">Power</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="pump2BtnOn" class="btn-action text-xs">ON</button>
-                                <button id="pump2BtnOff" class="btn-action text-xs active-black">OFF</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="clean-card p-5 flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-gray-800 uppercase">Kontrol Atap (Servo)</h3>
-                            <div class="flex bg-gray-100 p-1 rounded-lg">
-                                <button id="roofModeAuto" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all active-black">Auto</button>
-                                <button id="roofModeManual" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all text-gray-500">Manual</button>
-                            </div>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center gap-3">
-                                <button id="btnCloseRoof" class="btn-action w-full text-xs">Tutup (60°)</button>
-                                <button id="btnOpenRoof" class="btn-action w-full text-xs">Buka (150°)</button>
-                            </div>
-                            <div>
-                                <label for="roofSlider" class="block text-xs font-semibold mb-2 text-gray-500">Sudut Manual: <span id="roofAngleValue" class="font-bold text-gray-800">90°</span></label>
-                                <input id="roofSlider" type="range" min="0" max="180" value="90" class="w-full">
-                            </div>
-                        </div>
-                        <p id="roofStatus" class="text-[10px] mt-3 text-gray-400 font-medium">Saat mode Auto, kontrol manual dinonaktifkan.</p>
-                    </div>
-                </div>
-
-                </main>
-            
-            <main id="grafik" class="tab-content hidden h-full flex flex-col gap-6 overflow-y-auto pb-20">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="clean-card p-4 h-64">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Suhu Udara (°C)</h3>
-                        <div class="h-full pb-5"><canvas id="chartSuhu"></canvas></div>
-                    </div>
-                    <div class="clean-card p-4 h-64">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Kelembapan Udara (%)</h3>
-                        <div class="h-full pb-5"><canvas id="chartKelembapan"></canvas></div>
-                    </div>
-                    <div class="clean-card p-4 h-64 lg:col-span-2">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Intensitas Cahaya (lx)</h3>
-                        <div class="h-full pb-5"><canvas id="chartLight"></canvas></div>
-                    </div>
-                </div>
-
-                <div id="soilCharts" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="clean-card p-4 h-64"><h3 class="text-xs font-bold text-gray-400 uppercase mb-2">pH Larutan</h3><div class="h-full pb-5"><canvas id="chartPH1"></canvas></div></div>
-                    <div class="clean-card p-4 h-64"><h3 class="text-xs font-bold text-gray-400 uppercase mb-2">pH Tanah</h3><div class="h-full pb-5"><canvas id="chartPH2"></canvas></div></div>
-                    <div class="clean-card p-4 h-64"><h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Moisture Tanah 1 (%)</h3><div class="h-full pb-5"><canvas id="chartSoil1"></canvas></div></div>
-                    <div class="clean-card p-4 h-64"><h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Moisture Tanah 2 (%)</h3><div class="h-full pb-5"><canvas id="chartSoil2"></canvas></div></div>
-                </div> 
-            </main>
-
-            <main id="ringkasan" class="tab-content hidden h-full overflow-y-auto pb-20">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-lg font-bold text-gray-800">Tabel Data Sensor (8 Data Terakhir)</h2>
-                    <a href="https://docs.google.com/spreadsheets/d/1B4I2sBcp90mDwFNjqpXEe8hiF6uDGS9eLd2BHHzhS0o/edit?usp=sharing" target="_blank" class="text-xs px-3 py-1.5 rounded-lg font-semibold bg-gray-100 hover:bg-gray-200 text-gray-600 transition">
-                        Lihat Data Lengkap
-                    </a>
-                </div>
-                
-                <div class="clean-card overflow-x-auto">
-                    <table class="min-w-full text-sm text-left text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-4 py-3">Waktu</th>
-                                <th scope="col" class="px-4 py-3">pH 1</th>
-                                <th scope="col" class="px-4 py-3">pH 2</th>
-                                <th scope="col" class="px-4 py-3">Suhu (°C)</th>
-                                <th scope="col" class="px-4 py-3">Kelemb. (%)</th>
-                                <th scope="col" class="px-4 py-3">Tanah 1 (%)</th>
-                                <th scope="col" class="px-4 py-3">Tanah 2 (%)</th>
-                                <th scope="col" class="px-4 py-3">Cahaya (lx)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="logTbody" class="divide-y divide-gray-100">
-                            </tbody>
-                    </table>
-                </div>
-            </main>
-
-        </div>
+<!-- DASHBOARD -->
+<main id="dashboard" class="tab-content space-y-4">
+    <div class="clean-card p-4">
+        <p class="font-semibold">Status Sistem</p>
+        <p id="systemStatus" class="text-sm text-gray-500">Menunggu data...</p>
     </div>
+</main>
 
-    <!-- Container untuk notifikasi -->
-    <div id="notificationContainer" class="notification-container"></div>
+<!-- GRAFIK -->
+<main id="grafik" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="clean-card p-4 h-64"><canvas id="chartSuhu"></canvas></div>
+    <div class="clean-card p-4 h-64"><canvas id="chartKelembapan"></canvas></div>
+</main>
+
+<!-- LOG -->
+<main id="ringkasan" class="tab-content hidden">
+    <div class="clean-card p-4">
+        <table class="w-full text-sm">
+            <thead>
+                <tr>
+                    <th class="p-2">Waktu</th>
+                    <th class="p-2">Suhu</th>
+                    <th class="p-2">Hum</th>
+                </tr>
+            </thead>
+            <tbody id="logTbody"></tbody>
+        </table>
+    </div>
+</main>
+
+</div>
+</div>
 
 <script>
-// =======================================================
-// KONFIGURASI
-// =======================================================
-const FIREBASE_BASE_URL = "https://myesp32control-a3605-default-rtdb.asia-southeast1.firebasedatabase.app/";
-const POLL_INTERVAL = 3000;
-
-// ================= STATE =================
-let modePump1 = 'Auto';
-let modePump2 = 'Auto';
-let modeRoof  = 'Auto';
-
-let pump1State = 'OFF';
-let pump2State = 'OFF';
-
-let charts = {};
-let localLogs = [];
-
-
-// =======================================================
-// HELPER
-// =======================================================
-function setText(id, text){
-    const el = document.getElementById(id);
-    if(el) el.innerText = text;
-}
-
-function showNotification(msg, type='info'){
-    const container = document.getElementById('notificationContainer');
-    if(!container) return;
-
-    const div = document.createElement('div');
-    div.className = `notification ${type}`;
-    div.innerText = msg;
-
-    container.appendChild(div);
-    setTimeout(()=>div.classList.add('show'),100);
-    setTimeout(()=>{
-        div.classList.remove('show');
-        setTimeout(()=>div.remove(),300);
-    },3000);
-}
-
-// =======================================================
-// SIDEBAR
-// =======================================================
-const sidebar = document.getElementById('sidebar');
-const burgerBtn = document.getElementById('burgerBtn');
-
-if(burgerBtn){
-    burgerBtn.addEventListener('click',()=>{
-        sidebar.classList.toggle('collapsed');
-    });
-}
-
-// =======================================================
-// NAVIGASI MENU (FIX TOTAL)
-// =======================================================
-const navButtons = document.querySelectorAll('.nav-btn');
-const tabs = document.querySelectorAll('.tab-content');
-
-navButtons.forEach(btn=>{
-    btn.addEventListener('click',()=>{
-
-        const target = btn.getAttribute('data-target');
-
-        tabs.forEach(t=>t.classList.add('hidden'));
-        const active = document.getElementById(target);
-        if(active) active.classList.remove('hidden');
-
-        navButtons.forEach(b=>b.classList.remove('active'));
+// ================= NAV =================
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.onclick=()=>{
+        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
 
-        // resize chart saat halaman grafik dibuka
-        if(target === 'grafik'){
-            setTimeout(()=>{
-                Object.values(charts).forEach(c=>c.resize());
-            },200);
-        }
-    });
-});
-
-// =======================================================
-// FIREBASE WRITE
-// =======================================================
-async function setMode(target, mode){
-    try{
-        await fetch(`${FIREBASE_BASE_URL}control/mode/${target}.json`,{
-            method:'PUT',
-            body:JSON.stringify(mode)
-        });
-        showNotification(`Mode ${target} → ${mode}`,'success');
-    }catch{
-        showNotification('Gagal ubah mode','error');
-    }
-}
-
-async function setPumpState(num, state){
-    const mode = num===1?modePump1:modePump2;
-    if(mode!=='Manual'){
-        showNotification('Ubah ke MANUAL dulu','info');
-        return;
-    }
-
-    try{
-        await fetch(`${FIREBASE_BASE_URL}control/pump${num}.json`,{
-            method:'PUT',
-            body:JSON.stringify(state)
-        });
-        showNotification(`Pompa ${num} ${state}`,'success');
-    }catch{
-        showNotification('Gagal kontrol pompa','error');
-    }
-}
-
-async function setServoAngle(angle){
-    if(modeRoof!=='Manual'){
-        showNotification('Ubah ke MANUAL dulu','info');
-        return;
-    }
-
-    try{
-        await fetch(`${FIREBASE_BASE_URL}control/roof_angle.json`,{
-            method:'PUT',
-            body:JSON.stringify(angle)
-        });
-        showNotification(`Atap ${angle}°`,'success');
-    }catch{
-        showNotification('Gagal kontrol atap','error');
-    }
-}
-
-// =======================================================
-// CHART
-// =======================================================
-function createChart(canvas,label,color){
-    return new Chart(canvas,{
-        type:'line',
-        data:{
-            labels:[],
-            datasets:[{
-                label:label,
-                data:[],
-                borderWidth:2,
-                borderColor:color,
-                backgroundColor:color+'33',
-                tension:0.35,
-                pointRadius:0,
-                fill:true
-            }]
-        },
-        options:{
-            responsive:true,
-            maintainAspectRatio:false,
-            plugins:{legend:{display:false}},
-            interaction:{intersect:false,mode:'index'},
-            scales:{x:{display:false}}
-        }
-    });
-}
-
-function pushChart(chart,label,value){
-    if(value==null || isNaN(value)) return;
-
-    chart.data.labels.push(label);
-    chart.data.datasets[0].data.push(value);
-
-    if(chart.data.labels.length>20){
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
-    }
-    chart.update();
-}
-
-// =======================================================
-// UPDATE UI
-// =======================================================
-function updatePumpUI(){
-    const p1 = pump1State==='ON';
-    const p2 = pump2State==='ON';
-
-    document.getElementById('pump1Indicator').className =
-        p1?'w-3 h-3 rounded-full bg-green-500':'w-3 h-3 rounded-full bg-gray-300';
-
-    document.getElementById('pump2Indicator').className =
-        p2?'w-3 h-3 rounded-full bg-green-500':'w-3 h-3 rounded-full bg-gray-300';
-
-    setText('pumpSummary',`P1: ${pump1State} • P2: ${pump2State}`);
-}
-
-function updateModeUI(){
-    const disable=(id,cond)=>{
-        const el=document.getElementById(id);
-        if(!el) return;
-        el.disabled=cond;
-        el.classList.toggle('opacity-50',cond);
-        el.classList.toggle('pointer-events-none',cond);
-    };
-
-    disable('pump1BtnOn',modePump1==='Auto');
-    disable('pump1BtnOff',modePump1==='Auto');
-    disable('pump2BtnOn',modePump2==='Auto');
-    disable('pump2BtnOff',modePump2==='Auto');
-    disable('roofSlider',modeRoof==='Auto');
-    disable('btnOpenRoof',modeRoof==='Auto');
-    disable('btnCloseRoof',modeRoof==='Auto');
-}
-
-// =======================================================
-// RENDER LOG TABLE
-// =======================================================
-function renderLogs(logs){
-    const tbody = document.getElementById('logTbody');
-    if(!tbody) return;
-
-    tbody.innerHTML = '';
-    if(!logs || logs.length===0) return;
-
-    const arr = [...logs].reverse();
-
-    arr.forEach(d=>{
-        const tr = document.createElement('tr');
-
-        tr.innerHTML = `
-            <td class="px-4 py-3">${d.time || '-'}</td>
-            <td class="px-4 py-3">${d.ph1 ?? '-'}</td>
-            <td class="px-4 py-3">${d.ph2 ?? '-'}</td>
-            <td class="px-4 py-3">${d.temperature ?? '-'}</td>
-            <td class="px-4 py-3">${d.humidity ?? '-'}</td>
-            <td class="px-4 py-3">${d.soil1 ?? '-'}</td>
-            <td class="px-4 py-3">${d.soil2 ?? '-'}</td>
-            <td class="px-4 py-3">${d.light ?? '-'}</td>
-        `;
-
-        tbody.appendChild(tr);
-    });
-}
-
-
-// =======================================================
-// FETCH FIREBASE
-// =======================================================
-async function fetchDataAndRender(){
-    try{
-        const res = await fetch(`${FIREBASE_BASE_URL}.json`);
-        const db = await res.json();
-        if(!db) return;
-
-        document.getElementById('connIndicator').className='w-2 h-2 rounded-full bg-green-500 mr-2';
-        setText('connText','Cloud Online');
-
-        const m = db.monitoring || {};
-        const c = db.control || {};
-        
-
-
-        if(c.mode){
-            modePump1 = c.mode.pump1 || modePump1;
-            modePump2 = c.mode.pump2 || modePump2;
-            modeRoof  = c.mode.roof  || modeRoof;
-            updateModeUI();
-        }
-
-        pump1State = c.pump1 || pump1State;
-        pump2State = c.pump2 || pump2State;
-        updatePumpUI();
-
-        const temp = parseFloat(m.temperature);
-        const hum  = parseFloat(m.humidity);
-        const soil1= parseFloat(m.soil1);
-        const soil2= parseFloat(m.soil2);
-        const ph1  = parseFloat(m.ph1);
-        const ph2  = parseFloat(m.ph2);
-        const light= parseFloat(m.light);
-
-        setText('tempValue',temp+'°C');
-        setText('humValue',hum+'%');
-        setText('soil1Value',soil1+'%');
-        setText('soil2Value',soil2+'%');
-        setText('ph1Value',ph1);
-        setText('ph2Value',ph2);
-        setText('lightValue',light+' lx');
-
-        const time = new Date().toLocaleTimeString();
-        setText('currentTime',time);
-
-        // ================= BUAT RIWAYAT LOKAL =================
-localLogs.push({
-    time: time,
-    ph1: ph1,
-    ph2: ph2,
-    temperature: temp,
-    humidity: hum,
-    soil1: soil1,
-    soil2: soil2,
-    light: light
-});
-
-if(localLogs.length > 8) localLogs.shift();
-
-renderLogs(localLogs);
-// ======================================================
-
-
-        
-        pushChart(charts.temp,time,temp);
-        pushChart(charts.hum,time,hum);
-        pushChart(charts.soil1,time,soil1);
-        pushChart(charts.soil2,time,soil2);
-        pushChart(charts.ph1,time,ph1);
-        pushChart(charts.ph2,time,ph2);
-        pushChart(charts.light,time,light);
-
-    }catch{
-        document.getElementById('connIndicator').className='w-2 h-2 rounded-full bg-red-500 mr-2';
-        setText('connText','Cloud Error');
-    }
-}
-
-// =======================================================
-// INIT
-// =======================================================
-window.addEventListener('load',()=>{
-
-    charts = {
-        temp: createChart(document.getElementById('chartSuhu'),'Suhu','#ef4444'),
-        hum: createChart(document.getElementById('chartKelembapan'),'Hum','#3b82f6'),
-        light: createChart(document.getElementById('chartLight'),'Light','#f59e0b'),
-        ph1: createChart(document.getElementById('chartPH1'),'pH1','#10b981'),
-        ph2: createChart(document.getElementById('chartPH2'),'pH2','#8b5cf6'),
-        soil1: createChart(document.getElementById('chartSoil1'),'Soil1','#06b6d4'),
-        soil2: createChart(document.getElementById('chartSoil2'),'Soil2','#ec4899'),
-    };
-
-fetchDataAndRender();
-setInterval(fetchDataAndRender,POLL_INTERVAL);
-
-});
-
-// =======================================================
-// =======================================================
-// BUTTON EVENT (ANTI ERROR)
-// =======================================================
-function safeClick(id, fn){
-    const el = document.getElementById(id);
-    if(el) el.onclick = fn;
-}
-
-safeClick('pump1BtnOn', ()=>setPumpState(1,'ON'));
-safeClick('pump1BtnOff',()=>setPumpState(1,'OFF'));
-safeClick('pump2BtnOn', ()=>setPumpState(2,'ON'));
-safeClick('pump2BtnOff',()=>setPumpState(2,'OFF'));
-
-safeClick('pump1ModeAuto', ()=>setMode('pump1','Auto'));
-safeClick('pump1ModeManual', ()=>setMode('pump1','Manual'));
-safeClick('pump2ModeAuto', ()=>setMode('pump2','Auto'));
-safeClick('pump2ModeManual', ()=>setMode('pump2','Manual'));
-safeClick('roofModeAuto', ()=>setMode('roof','Auto'));
-safeClick('roofModeManual', ()=>setMode('roof','Manual'));
-
-safeClick('btnOpenRoof', ()=>setServoAngle(150));
-safeClick('btnCloseRoof',()=>setServoAngle(60));
-
-const slider = document.getElementById('roofSlider');
-if(slider){
-    slider.oninput = e=>setServoAngle(parseInt(e.target.value));
-}
-
-    const themeBtn = document.getElementById('themeToggle');
-
-themeBtn.addEventListener('click',()=>{
-    document.body.classList.toggle('dark');
-
-    if(document.body.classList.contains('dark')){
-        themeBtn.innerHTML = '☀️';
-        localStorage.setItem('theme','dark');
-    }else{
-        themeBtn.innerHTML = '🌙';
-        localStorage.setItem('theme','light');
+        document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
+        document.getElementById(btn.dataset.target).classList.remove('hidden');
     }
 });
-window.addEventListener('load',()=>{
-    const saved = localStorage.getItem('theme');
-    if(saved==='dark'){
+
+// ================= DARK MODE =================
+const themeBtn=document.getElementById('themeToggle');
+
+function applyTheme(){
+    if(localStorage.getItem('theme')==='dark'){
         document.body.classList.add('dark');
-        themeBtn.innerHTML='☀️';
+        themeBtn.innerText='☀️';
     }
+}
+applyTheme();
+
+themeBtn.onclick=()=>{
+    document.body.classList.toggle('dark');
+    const dark=document.body.classList.contains('dark');
+    localStorage.setItem('theme',dark?'dark':'light');
+    themeBtn.innerText=dark?'☀️':'🌙';
+};
+
+// ================= CHART =================
+new Chart(document.getElementById('chartSuhu'),{
+    type:'line',
+    data:{labels:[],datasets:[{data:[],borderColor:'#ef4444'}]},
+    options:{responsive:true,maintainAspectRatio:false}
 });
-
+new Chart(document.getElementById('chartKelembapan'),{
+    type:'line',
+    data:{labels:[],datasets:[{data:[],borderColor:'#3b82f6'}]},
+    options:{responsive:true,maintainAspectRatio:false}
+});
 </script>
-
-
-
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
