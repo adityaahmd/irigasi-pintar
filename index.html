@@ -502,7 +502,7 @@
     <!-- Container untuk notifikasi -->
     <div id="notificationContainer" class="notification-container"></div>
 
-   <script>
+<script>
 // =======================================================
 // KONFIGURASI
 // =======================================================
@@ -516,7 +516,6 @@ let modeRoof  = 'Auto';
 
 let pump1State = 'OFF';
 let pump2State = 'OFF';
-let roofAngleState = 90;
 
 let charts = {};
 
@@ -530,15 +529,30 @@ function setText(id, text){
 
 function showNotification(msg, type='info'){
     const container = document.getElementById('notificationContainer');
+    if(!container) return;
+
     const div = document.createElement('div');
     div.className = `notification ${type}`;
     div.innerText = msg;
+
     container.appendChild(div);
     setTimeout(()=>div.classList.add('show'),100);
     setTimeout(()=>{
         div.classList.remove('show');
         setTimeout(()=>div.remove(),300);
     },3000);
+}
+
+// =======================================================
+// SIDEBAR
+// =======================================================
+const sidebar = document.getElementById('sidebar');
+const burgerBtn = document.getElementById('burgerBtn');
+
+if(burgerBtn){
+    burgerBtn.addEventListener('click',()=>{
+        sidebar.classList.toggle('collapsed');
+    });
 }
 
 // =======================================================
@@ -551,7 +565,7 @@ async function setMode(target, mode){
             body:JSON.stringify(mode)
         });
         showNotification(`Mode ${target} → ${mode}`,'success');
-    }catch(e){
+    }catch{
         showNotification('Gagal ubah mode','error');
     }
 }
@@ -562,6 +576,7 @@ async function setPumpState(num, state){
         showNotification('Ubah ke MANUAL dulu','info');
         return;
     }
+
     try{
         await fetch(`${FIREBASE_BASE_URL}control/pump${num}.json`,{
             method:'PUT',
@@ -578,6 +593,7 @@ async function setServoAngle(angle){
         showNotification('Ubah ke MANUAL dulu','info');
         return;
     }
+
     try{
         await fetch(`${FIREBASE_BASE_URL}control/roof_angle.json`,{
             method:'PUT',
@@ -590,9 +606,9 @@ async function setServoAngle(angle){
 }
 
 // =======================================================
-// CHART
+// CHART STYLE
 // =======================================================
-function createChart(canvas,label){
+function createChart(canvas,label,color){
     return new Chart(canvas,{
         type:'line',
         data:{
@@ -601,24 +617,32 @@ function createChart(canvas,label){
                 label:label,
                 data:[],
                 borderWidth:2,
-                tension:0.4,
+                borderColor:color,
+                backgroundColor:color+'33',
+                tension:0.35,
                 pointRadius:0,
-                fill:false
+                fill:true
             }]
         },
         options:{
             responsive:true,
             maintainAspectRatio:false,
             plugins:{legend:{display:false}},
-            scales:{x:{display:false}}
+            interaction:{intersect:false,mode:'index'},
+            scales:{
+                x:{display:false},
+                y:{ticks:{font:{size:10}}}
+            }
         }
     });
 }
 
 function pushChart(chart,label,value){
     if(value==null || isNaN(value)) return;
+
     chart.data.labels.push(label);
     chart.data.datasets[0].data.push(value);
+
     if(chart.data.labels.length>20){
         chart.data.labels.shift();
         chart.data.datasets[0].data.shift();
@@ -627,7 +651,7 @@ function pushChart(chart,label,value){
 }
 
 // =======================================================
-// UI UPDATE
+// UPDATE UI
 // =======================================================
 function updatePumpUI(){
     const p1 = pump1State==='ON';
@@ -661,7 +685,7 @@ function updateModeUI(){
 }
 
 // =======================================================
-// FETCH DATA DARI CLOUD
+// FETCH DATA
 // =======================================================
 async function fetchDataAndRender(){
     try{
@@ -675,7 +699,7 @@ async function fetchDataAndRender(){
         const m = db.monitoring || {};
         const c = db.control || {};
 
-        // mode
+        // ===== MODE =====
         if(c.mode){
             modePump1 = c.mode.pump1 || modePump1;
             modePump2 = c.mode.pump2 || modePump2;
@@ -683,12 +707,12 @@ async function fetchDataAndRender(){
             updateModeUI();
         }
 
-        // aktuator
+        // ===== AKTUATOR =====
         pump1State = c.pump1 || pump1State;
         pump2State = c.pump2 || pump2State;
         updatePumpUI();
 
-        // sensor
+        // ===== SENSOR =====
         const temp = parseFloat(m.temperature);
         const hum  = parseFloat(m.humidity);
         const soil1= parseFloat(m.soil1);
@@ -716,32 +740,32 @@ async function fetchDataAndRender(){
         pushChart(charts.ph2,time,ph2);
         pushChart(charts.light,time,light);
 
-    }catch(e){
+    }catch{
         document.getElementById('connIndicator').className='w-2 h-2 rounded-full bg-red-500 mr-2';
         setText('connText','Cloud Error');
     }
 }
 
 // =======================================================
-// INIT SAAT PAGE LOAD
+// INIT
 // =======================================================
 window.addEventListener('load',()=>{
 
     charts = {
-        temp: createChart(document.getElementById('chartSuhu'),'Suhu'),
-        hum: createChart(document.getElementById('chartKelembapan'),'Hum'),
-        light: createChart(document.getElementById('chartLight'),'Light'),
-        ph1: createChart(document.getElementById('chartPH1'),'pH1'),
-        ph2: createChart(document.getElementById('chartPH2'),'pH2'),
-        soil1: createChart(document.getElementById('chartSoil1'),'Soil1'),
-        soil2: createChart(document.getElementById('chartSoil2'),'Soil2'),
+        temp: createChart(document.getElementById('chartSuhu'),'Suhu','#ef4444'),
+        hum: createChart(document.getElementById('chartKelembapan'),'Hum','#3b82f6'),
+        light: createChart(document.getElementById('chartLight'),'Light','#f59e0b'),
+        ph1: createChart(document.getElementById('chartPH1'),'pH1','#10b981'),
+        ph2: createChart(document.getElementById('chartPH2'),'pH2','#8b5cf6'),
+        soil1: createChart(document.getElementById('chartSoil1'),'Soil1','#06b6d4'),
+        soil2: createChart(document.getElementById('chartSoil2'),'Soil2','#ec4899'),
     };
 
     setInterval(fetchDataAndRender,POLL_INTERVAL);
 });
 
 // =======================================================
-// EVENT TOMBOL
+// BUTTON EVENT
 // =======================================================
 document.getElementById('pump1BtnOn').onclick = ()=>setPumpState(1,'ON');
 document.getElementById('pump1BtnOff').onclick= ()=>setPumpState(1,'OFF');
@@ -759,22 +783,13 @@ document.getElementById('btnOpenRoof').onclick = ()=>setServoAngle(150);
 document.getElementById('btnCloseRoof').onclick= ()=>setServoAngle(60);
 document.getElementById('roofSlider').oninput = e=>setServoAngle(parseInt(e.target.value));
 
-// =======================================================
-// SIDEBAR HAMBURGER
-// =======================================================
-const sidebar = document.getElementById('sidebar');
-const burgerBtn = document.getElementById('burgerBtn');
-
-burgerBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('collapsed');
-});
-
-
 </script>
+
 
 
 </body>
 </html>
+
 
 
 
