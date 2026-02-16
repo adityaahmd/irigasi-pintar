@@ -518,6 +518,8 @@ let pump1State = 'OFF';
 let pump2State = 'OFF';
 
 let charts = {};
+let localLogs = [];
+
 
 // =======================================================
 // HELPER
@@ -716,10 +718,9 @@ function renderLogs(logs){
     if(!tbody) return;
 
     tbody.innerHTML = '';
+    if(!logs || logs.length===0) return;
 
-    if(!logs) return;
-
-    const arr = Object.values(logs).slice(-8).reverse();
+    const arr = [...logs].reverse();
 
     arr.forEach(d=>{
         const tr = document.createElement('tr');
@@ -739,6 +740,7 @@ function renderLogs(logs){
     });
 }
 
+
 // =======================================================
 // FETCH FIREBASE
 // =======================================================
@@ -754,7 +756,6 @@ async function fetchDataAndRender(){
         const m = db.monitoring || {};
         const c = db.control || {};
         
-        renderLogs(m.logs);
 
 
         if(c.mode){
@@ -787,6 +788,25 @@ async function fetchDataAndRender(){
         const time = new Date().toLocaleTimeString();
         setText('currentTime',time);
 
+        // ================= BUAT RIWAYAT LOKAL =================
+localLogs.push({
+    time: time,
+    ph1: ph1,
+    ph2: ph2,
+    temperature: temp,
+    humidity: hum,
+    soil1: soil1,
+    soil2: soil2,
+    light: light
+});
+
+if(localLogs.length > 8) localLogs.shift();
+
+renderLogs(localLogs);
+// ======================================================
+
+
+        
         pushChart(charts.temp,time,temp);
         pushChart(charts.hum,time,hum);
         pushChart(charts.soil1,time,soil1);
@@ -857,6 +877,7 @@ if(slider){
 
 </body>
 </html>
+
 
 
 
