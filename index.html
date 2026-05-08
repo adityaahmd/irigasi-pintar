@@ -113,23 +113,7 @@
         }
         body.dark-mode .btn-action:hover { border-color: #6b7280; background: #4b5563; }
         body.dark-mode .btn-action.active-black { background: #d1d5db; color: #1f2937; border-color: #d1d5db; }
-        
-        /* Slider Range */
-        input[type=range] { -webkit-appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
-            background: #1f2937; margin-top: -6px; cursor: pointer;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px;
-        }
-        
-        body.dark-mode input[type=range]::-webkit-slider-thumb {
-            background: #d1d5db;
-        }
-        body.dark-mode input[type=range]::-webkit-slider-runnable-track {
-            background: #4b5563;
-        }
+
         
         /* Scrollbar Halus */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -312,7 +296,6 @@
                     </div>
                     <div class="flex gap-4 md:gap-8 text-sm">
                         <div><span class="block text-[10px] text-gray-400 uppercase font-bold">Pompa</span><span id="pumpSummary" class="font-bold text-gray-800">-/—</span></div>
-                        <div><span class="block text-[10px] text-gray-400 uppercase font-bold">Atap</span><span id="roofAngleSummary" class="font-bold text-gray-800">—</span></div>
                         <div><span class="block text-[10px] text-gray-400 uppercase font-bold">Cahaya</span><span id="lightSummary" class="font-bold text-gray-800">—</span></div>
                     </div>
                 </div>
@@ -419,27 +402,6 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="clean-card p-5 flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-gray-800 uppercase">Kontrol Atap (Servo)</h3>
-                            <div class="flex bg-gray-100 p-1 rounded-lg">
-                                <button id="roofModeAuto" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all active-black">Auto</button>
-                                <button id="roofModeManual" class="px-3 py-1 text-[10px] font-bold uppercase rounded transition-all text-gray-500">Manual</button>
-                            </div>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center gap-3">
-                                <button id="btnCloseRoof" class="btn-action w-full text-xs">Tutup (60°)</button>
-                                <button id="btnOpenRoof" class="btn-action w-full text-xs">Buka (150°)</button>
-                            </div>
-                            <div>
-                                <label for="roofSlider" class="block text-xs font-semibold mb-2 text-gray-500">Sudut Manual: <span id="roofAngleValue" class="font-bold text-gray-800">90°</span></label>
-                                <input id="roofSlider" type="range" min="0" max="180" value="90" class="w-full">
-                            </div>
-                        </div>
-                        <p id="roofStatus" class="text-[10px] mt-3 text-gray-400 font-medium">Saat mode Auto, kontrol manual dinonaktifkan.</p>
-                    </div>
                 </div>
 
                 </main>
@@ -506,7 +468,7 @@
 // =======================================================
 // KONFIGURASI
 // =======================================================
-const FIREBASE_BASE_URL = "https://myesp32control-a3605-default-rtdb.asia-southeast1.firebasedatabase.app/";
+const FIREBASE_BASE_URL = "https://smartgardeniot-d5a72-default-rtdb.asia-southeast1.firebasedatabase.app/";
 const POLL_INTERVAL = 3000;
 
 // ================= STATE =================
@@ -630,22 +592,6 @@ async function setPumpState(num, state){
     }
 }
 
-async function setServoAngle(angle){
-    if(modeRoof!=='Manual'){
-        showNotification('Ubah ke MANUAL dulu','info');
-        return;
-    }
-
-    try{
-        await fetch(`${FIREBASE_BASE_URL}control/roof_angle.json`,{
-            method:'PUT',
-            body:JSON.stringify(angle)
-        });
-        showNotification(`Atap ${angle}°`,'success');
-    }catch{
-        showNotification('Gagal kontrol atap','error');
-    }
-}
 
 // =======================================================
 // CHART
@@ -718,9 +664,6 @@ function updateModeUI(){
     disable('pump1BtnOff',modePump1==='Auto');
     disable('pump2BtnOn',modePump2==='Auto');
     disable('pump2BtnOff',modePump2==='Auto');
-    disable('roofSlider',modeRoof==='Auto');
-    disable('btnOpenRoof',modeRoof==='Auto');
-    disable('btnCloseRoof',modeRoof==='Auto');
 }
 
 // =======================================================
@@ -774,7 +717,6 @@ async function fetchDataAndRender(){
         if(c.mode){
             modePump1 = c.mode.pump1 || modePump1;
             modePump2 = c.mode.pump2 || modePump2;
-            modeRoof  = c.mode.roof  || modeRoof;
             updateModeUI();
         }
 
@@ -872,25 +814,11 @@ safeClick('pump1ModeAuto', ()=>setMode('pump1','Auto'));
 safeClick('pump1ModeManual', ()=>setMode('pump1','Manual'));
 safeClick('pump2ModeAuto', ()=>setMode('pump2','Auto'));
 safeClick('pump2ModeManual', ()=>setMode('pump2','Manual'));
-safeClick('roofModeAuto', ()=>setMode('roof','Auto'));
-safeClick('roofModeManual', ()=>setMode('roof','Manual'));
-
-safeClick('btnOpenRoof', ()=>setServoAngle(150));
-safeClick('btnCloseRoof',()=>setServoAngle(60));
-
-const slider = document.getElementById('roofSlider');
-if(slider){
-    slider.oninput = e=>setServoAngle(parseInt(e.target.value));
-}
 
 </script>
 
-
-
-
 </body>
 </html>
-
 
 
 
