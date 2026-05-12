@@ -407,7 +407,24 @@ body.dark-mode tbody tr{
         <div id="pump1Indicator" class="w-4 h-4 rounded-full status-off"></div>
     </div>
 
+<div class="space-y-4">
+
+    <!-- MODE -->
     <div class="flex gap-3">
+
+        <button id="pump1AutoBtn" class="btn btn-primary">
+            AUTO
+        </button>
+
+        <button id="pump1ManualBtn" class="btn btn-outline">
+            MANUAL
+        </button>
+
+    </div>
+
+    <!-- CONTROL -->
+    <div class="flex gap-3">
+
         <button id="pump1BtnOn" class="btn btn-primary">
             ON
         </button>
@@ -415,7 +432,10 @@ body.dark-mode tbody tr{
         <button id="pump1BtnOff" class="btn btn-outline">
             OFF
         </button>
+
     </div>
+
+</div>
 
 </div>
 
@@ -436,7 +456,24 @@ body.dark-mode tbody tr{
         <div id="pump2Indicator" class="w-4 h-4 rounded-full status-off"></div>
     </div>
 
+<div class="space-y-4">
+
+    <!-- MODE -->
     <div class="flex gap-3">
+
+        <button id="pump2AutoBtn" class="btn btn-primary">
+            AUTO
+        </button>
+
+        <button id="pump2ManualBtn" class="btn btn-outline">
+            MANUAL
+        </button>
+
+    </div>
+
+    <!-- CONTROL -->
+    <div class="flex gap-3">
+
         <button id="pump2BtnOn" class="btn btn-primary">
             ON
         </button>
@@ -444,7 +481,10 @@ body.dark-mode tbody tr{
         <button id="pump2BtnOff" class="btn btn-outline">
             OFF
         </button>
+
     </div>
+
+</div>
 
 </div>
 
@@ -747,11 +787,11 @@ async function fetchData(){
 
         // ================= PUMP =================
 
-        const pump1 = data.pump1Status || 'OFF';
-        const pump2 = data.pump2Status || 'OFF';
+        const pump1 = data.pump1 || 'OFF';
+        const pump2 = data.pump2 || 'OFF';
 
-        const mode1 = data.pump1Mode || 'Auto';
-        const mode2 = data.pump2Mode || 'Auto';
+        const mode1 = data.modePump1 || 'Auto';
+        const mode2 = data.modePump2 || 'Auto';
 
         setText('pump1ModeText','Mode: ' + mode1);
         setText('pump2ModeText','Mode: ' + mode2);
@@ -821,6 +861,114 @@ async function fetchData(){
     }
 
 }
+
+// =====================================================
+// UPDATE FIREBASE CONTROL
+// =====================================================
+
+async function updateFirebaseControl(data){
+
+    await fetch(FIREBASE + '/control.json',{
+
+        method:'PATCH',
+
+        headers:{
+            'Content-Type':'application/json'
+        },
+
+        body:JSON.stringify(data)
+
+    });
+
+}
+
+// =====================================================
+// PUMP 1 MODE
+// =====================================================
+
+document.getElementById('pump1AutoBtn')
+.addEventListener('click',async()=>{
+
+    await updateFirebaseControl({
+        pump1Mode:'Auto'
+    });
+
+});
+
+document.getElementById('pump1ManualBtn')
+.addEventListener('click',async()=>{
+
+    await updateFirebaseControl({
+        pump1Mode:'Manual'
+    });
+
+});
+
+// =====================================================
+// PUMP 2 MODE
+// =====================================================
+
+document.getElementById('pump2AutoBtn')
+.addEventListener('click',async()=>{
+
+    await updateFirebaseControl({
+        pump2Mode:'Auto'
+    });
+
+});
+
+document.getElementById('pump2ManualBtn')
+.addEventListener('click',async()=>{
+
+    await updateFirebaseControl({
+        pump2Mode:'Manual'
+    });
+
+});
+
+// =====================================================
+// PUMP 1 CONTROL
+// =====================================================
+
+document.getElementById('pump1BtnOn')
+.addEventListener('click',async()=>{
+
+    await updateFirebaseControl({
+        manualPump1:'ON'
+    });
+
+});
+
+document.getElementById('pump1BtnOff')
+.addEventListener('click',async()=>{
+
+    await updateFirebaseControl({
+        manualPump1:'OFF'
+    });
+
+});
+
+// =====================================================
+// PUMP 2 CONTROL
+// =====================================================
+
+document.getElementById('pump2BtnOn')
+.addEventListener('click',async()=>{
+
+    await updateFirebaseControl({
+        manualPump2:'ON'
+    });
+
+});
+
+document.getElementById('pump2BtnOff')
+.addEventListener('click',async()=>{
+
+    await updateFirebaseControl({
+        manualPump2:'OFF'
+    });
+
+});
 
 fetchData();
 
