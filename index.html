@@ -597,8 +597,10 @@ let logs = [];
 
 document.getElementById('burgerBtn')
 .addEventListener('click',()=>{
+
     document.getElementById('sidebar')
     .classList.toggle('collapsed');
+
 });
 
 // =====================================================
@@ -607,7 +609,9 @@ document.getElementById('burgerBtn')
 
 document.getElementById('darkToggle')
 .addEventListener('click',()=>{
+
     document.body.classList.toggle('dark-mode');
+
 });
 
 // =====================================================
@@ -673,12 +677,15 @@ function pushChart(chart,label,val){
     chart.data.labels.push(label);
     chart.data.datasets[0].data.push(val);
 
-    if(chart.data.labels.length>20){
+    if(chart.data.labels.length > 20){
+
         chart.data.labels.shift();
         chart.data.datasets[0].data.shift();
+
     }
 
     chart.update();
+
 }
 
 // =====================================================
@@ -697,7 +704,9 @@ charts.ph2   = createChart('chartPH2','pH2','#ec4899');
 // =====================================================
 
 function setText(id,val){
+
     document.getElementById(id).innerText = val;
+
 }
 
 function updateLogs(){
@@ -719,6 +728,7 @@ function updateLogs(){
             <td class="px-4 py-3">${log.ph2}</td>
         </tr>
         `;
+
     });
 
 }
@@ -731,8 +741,15 @@ async function fetchData(){
 
     try{
 
+        // ================= MONITORING =================
+
         const res = await fetch(FIREBASE + '/monitoring.json');
         const data = await res.json();
+
+        // ================= CONTROL =================
+
+        const controlRes = await fetch(FIREBASE + '/control.json');
+        const control = await controlRes.json();
 
         if(!data) return;
 
@@ -743,7 +760,9 @@ async function fetchData(){
 
         const time = new Date().toLocaleTimeString();
 
-        // ================= SENSOR =================
+        // =====================================================
+        // SENSOR
+        // =====================================================
 
         setText('tempValue',data.temperature + '°C');
         setText('humValue',data.humidity + '%');
@@ -753,7 +772,9 @@ async function fetchData(){
         setText('ph2Value',data.ph2);
         setText('lightValue',data.light + ' lx');
 
-        // ================= STATUS SOIL =================
+        // =====================================================
+        // STATUS SOIL
+        // =====================================================
 
         setText(
             'soil1Status',
@@ -769,7 +790,9 @@ async function fetchData(){
             : 'Lembap'
         );
 
-        // ================= STATUS PH =================
+        // =====================================================
+        // STATUS PH
+        // =====================================================
 
         setText(
             'ph1Status',
@@ -785,13 +808,15 @@ async function fetchData(){
             : 'Tidak Normal'
         );
 
-        // ================= PUMP =================
+        // =====================================================
+        // PUMP STATUS
+        // =====================================================
 
         const pump1 = data.pump1 || 'OFF';
         const pump2 = data.pump2 || 'OFF';
 
-        const mode1 = data.modePump1 || 'Auto';
-        const mode2 = data.modePump2 || 'Auto';
+        const mode1 = control?.pump1Mode || 'Auto';
+        const mode2 = control?.pump2Mode || 'Auto';
 
         setText('pump1ModeText','Mode: ' + mode1);
         setText('pump2ModeText','Mode: ' + mode2);
@@ -813,16 +838,57 @@ async function fetchData(){
         ? 'w-4 h-4 rounded-full status-on'
         : 'w-4 h-4 rounded-full status-off';
 
-        // ================= SYSTEM STATUS =================
+        // =====================================================
+        // BUTTON ACTIVE MODE
+        // =====================================================
+
+        if(mode1 === 'Manual'){
+
+            document.getElementById('pump1ManualBtn')
+            .classList.add('btn-primary');
+
+            document.getElementById('pump1AutoBtn')
+            .classList.remove('btn-primary');
+
+        }else{
+
+            document.getElementById('pump1AutoBtn')
+            .classList.add('btn-primary');
+
+            document.getElementById('pump1ManualBtn')
+            .classList.remove('btn-primary');
+
+        }
+
+        if(mode2 === 'Manual'){
+
+            document.getElementById('pump2ManualBtn')
+            .classList.add('btn-primary');
+
+            document.getElementById('pump2AutoBtn')
+            .classList.remove('btn-primary');
+
+        }else{
+
+            document.getElementById('pump2AutoBtn')
+            .classList.add('btn-primary');
+
+            document.getElementById('pump2ManualBtn')
+            .classList.remove('btn-primary');
+
+        }
+
+        // =====================================================
+        // SYSTEM STATUS
+        // =====================================================
 
         setText('systemStatus','Monitoring Aktif');
 
-        setText(
-            'currentTime',
-            time
-        );
+        setText('currentTime',time);
 
-        // ================= CHART =================
+        // =====================================================
+        // CHART
+        // =====================================================
 
         pushChart(charts.temp,time,data.temperature);
         pushChart(charts.hum,time,data.humidity);
@@ -831,7 +897,9 @@ async function fetchData(){
         pushChart(charts.ph1,time,data.ph1);
         pushChart(charts.ph2,time,data.ph2);
 
-        // ================= LOG =================
+        // =====================================================
+        // LOG
+        // =====================================================
 
         logs.push({
             time,
@@ -843,8 +911,10 @@ async function fetchData(){
             ph2:data.ph2
         });
 
-        if(logs.length>8){
+        if(logs.length > 8){
+
             logs.shift();
+
         }
 
         updateLogs();
@@ -863,22 +933,34 @@ async function fetchData(){
 }
 
 // =====================================================
-// UPDATE FIREBASE CONTROL
+// UPDATE FIREBASE
 // =====================================================
 
-async function updateFirebaseControl(data){
+async function updateFirebase(data){
 
-    await fetch(FIREBASE + '/control.json',{
+    try{
 
-        method:'PATCH',
+        const res = await fetch(FIREBASE + '/control.json',{
 
-        headers:{
-            'Content-Type':'application/json'
-        },
+            method:'PATCH',
 
-        body:JSON.stringify(data)
+            headers:{
+                'Content-Type':'application/json'
+            },
 
-    });
+            body:JSON.stringify(data)
+
+        });
+
+        const result = await res.json();
+
+        console.log('Firebase Updated:',result);
+
+    }catch(err){
+
+        console.log('Firebase Error:',err);
+
+    }
 
 }
 
@@ -889,8 +971,10 @@ async function updateFirebaseControl(data){
 document.getElementById('pump1AutoBtn')
 .addEventListener('click',async()=>{
 
-    await updateFirebaseControl({
+    await updateFirebase({
+
         pump1Mode:'Auto'
+
     });
 
 });
@@ -898,8 +982,10 @@ document.getElementById('pump1AutoBtn')
 document.getElementById('pump1ManualBtn')
 .addEventListener('click',async()=>{
 
-    await updateFirebaseControl({
+    await updateFirebase({
+
         pump1Mode:'Manual'
+
     });
 
 });
@@ -911,8 +997,10 @@ document.getElementById('pump1ManualBtn')
 document.getElementById('pump2AutoBtn')
 .addEventListener('click',async()=>{
 
-    await updateFirebaseControl({
+    await updateFirebase({
+
         pump2Mode:'Auto'
+
     });
 
 });
@@ -920,8 +1008,10 @@ document.getElementById('pump2AutoBtn')
 document.getElementById('pump2ManualBtn')
 .addEventListener('click',async()=>{
 
-    await updateFirebaseControl({
+    await updateFirebase({
+
         pump2Mode:'Manual'
+
     });
 
 });
@@ -933,8 +1023,11 @@ document.getElementById('pump2ManualBtn')
 document.getElementById('pump1BtnOn')
 .addEventListener('click',async()=>{
 
-    await updateFirebaseControl({
-        manualPump1:'ON'
+    await updateFirebase({
+
+        manualPump1:'ON',
+        pump1:'ON'
+
     });
 
 });
@@ -942,8 +1035,11 @@ document.getElementById('pump1BtnOn')
 document.getElementById('pump1BtnOff')
 .addEventListener('click',async()=>{
 
-    await updateFirebaseControl({
-        manualPump1:'OFF'
+    await updateFirebase({
+
+        manualPump1:'OFF',
+        pump1:'OFF'
+
     });
 
 });
@@ -955,8 +1051,11 @@ document.getElementById('pump1BtnOff')
 document.getElementById('pump2BtnOn')
 .addEventListener('click',async()=>{
 
-    await updateFirebaseControl({
-        manualPump2:'ON'
+    await updateFirebase({
+
+        manualPump2:'ON',
+        pump2:'ON'
+
     });
 
 });
@@ -964,17 +1063,21 @@ document.getElementById('pump2BtnOn')
 document.getElementById('pump2BtnOff')
 .addEventListener('click',async()=>{
 
-    await updateFirebaseControl({
-        manualPump2:'OFF'
+    await updateFirebase({
+
+        manualPump2:'OFF',
+        pump2:'OFF'
+
     });
 
 });
+
+// =====================================================
+// START
+// =====================================================
 
 fetchData();
 
 setInterval(fetchData,3000);
 
 </script>
-
-</body>
-</html>
